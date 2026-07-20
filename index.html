@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Textvas — テキストと画像を自由に並べるノートアプリ</title>
+<meta name="description" content="Textvas はテキストと画像を自由に配置・整理できるローカルファーストのノートアプリです。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Textvas — テキストと画像を自由に並べるノートアプリ">
+<meta property="og:description" content="テキストと画像を自由に配置・整理できるノートアプリ。">
+<meta property="og:image" content="images/hero.jpg">
+<meta property="og:image:width" content="1884">
+<meta property="og:image:height" content="989">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="images/hero.jpg">
+<link rel="icon" type="image/png" href="images/textvas-icon.png">
+<link rel="apple-touch-icon" href="images/textvas-icon.png">
+<meta name="theme-color" content="#111113">
+<link rel="preload" as="image" href="images/jpg/1.webp" type="image/webp">
+<link rel="stylesheet" href="fonts/textvas-fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg1:#111113;--bg2:#1a1a1e;--bg3:#242428;
+  --accent:#bcec15;--text1:#e8e8e8;
+  --sub:rgba(232,232,232,0.6);
+  --font:'Noto Sans JP',sans-serif;--font-en:'Orbitron',sans-serif;
+  
+  --wrap:1320px;--padL:60px;--padR:48px;
+  
+  --wrappad:calc(var(--wrap) + var(--padL) + var(--padR));
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg1);color:var(--text1);font-family:var(--font);font-weight:700;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+img{max-width:100%;display:block}
+
+h1,h2,h3{line-break:strict;text-wrap:balance}
+p,dt,dd,.lead{line-break:strict;text-wrap:pretty}
+
+.feature h2,.feature .text p,.banner h2,.banner .caption p,.showcase-cat,.showcase-title,.feat-card h3,.feat-card p,.hero-card .lead{word-break:keep-all;overflow-wrap:anywhere}
+
+
+.nav{position:fixed;top:0;left:0;width:100%;z-index:100;
+  padding:0 48px 0 60px;
+  background:var(--bg2);
+  border-bottom:2px solid rgba(255,255,255,0.08)}
+
+.nav-inner{position:relative;max-width:var(--wrap);margin:0 auto;display:flex;align-items:center;gap:28px;padding:16px 0}
+.nav-brand{flex:0 0 auto;display:inline-flex;align-items:center;gap:10px;line-height:1;font-family:var(--font-en);font-weight:900;font-size:26px;letter-spacing:0.015em;color:var(--text1)}
+.nav-brand img{width:40px;height:40px;border-radius:11px;display:block;
+  box-shadow:0 2px 10px rgba(0,0,0,0.45),inset 0 0 0 1px rgba(255,255,255,0.10)}
+.nav-links{flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:34px}
+.nav-links a{display:inline-flex;align-items:center;gap:7px;line-height:1;white-space:nowrap;transition:color 0.15s}
+.nav-links a:not(.nav-cta){color:var(--text1);font-size:17px}
+.nav-links a:not(.nav-cta):hover{color:var(--accent)}
+.nav-ico{width:22px;height:22px;flex:none;display:block}
+.nav-cta .nav-ico{width:19px;height:19px}
+
+.nav-cta{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;line-height:1;padding:9px 22px;border-radius:999px;background:transparent;color:var(--accent);font-family:var(--font);font-weight:900;font-size:16px;border:2px solid var(--accent);cursor:pointer;transition:background 0.15s,color 0.15s,transform 0.15s ease}
+.nav-cta:hover{background:var(--accent);color:#16240a;transform:scale(1.05)}
+.buy-toggle{position:relative;display:inline-flex}
+.buy-menu{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);min-width:184px;background:var(--bg2);border:2px solid rgba(255,255,255,0.12);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.5);padding:6px;z-index:1000;display:none}
+.buy-toggle.open .buy-menu{display:block}
+.buy-menu a{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:8px;color:var(--text1);font-weight:900;font-size:15px}
+.buy-menu a:hover{background:rgba(255,255,255,0.07);color:var(--text1)}
+.buy-menu svg{width:22px;height:22px;flex:none;fill:currentColor}
+.nav-actions{flex:0 0 auto;display:flex;align-items:center;gap:16px}
+.lang-toggle{position:relative}
+.lang-trigger{display:inline-flex;align-items:center;gap:9px;width:200px;border:2px solid rgba(255,255,255,0.16);background:none;color:var(--text1);font-size:15px;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;font-family:var(--font);line-height:1;transition:border-color 0.15s}
+.lang-trigger:hover{border-color:var(--accent)}
+.lang-globe{width:20px;height:20px;flex-shrink:0;display:block}
+.lang-caret{font-size:14px;opacity:0.7;line-height:1;margin-left:auto;transition:transform 0.15s}
+.lang-toggle.open .lang-caret{transform:rotate(180deg)}
+.lang-panel{position:absolute;top:calc(100% + 6px);right:0;min-width:200px;background:var(--bg2);border:2px solid rgba(255,255,255,0.12);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.5);padding:6px;z-index:1000;display:none}
+.lang-toggle.open .lang-panel{display:block}
+.lang-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;font-size:15px;font-weight:700;color:var(--text1);cursor:pointer;border-radius:8px;white-space:nowrap}
+.lang-item:hover{background:rgba(255,255,255,0.07)}
+.lang-item.active{color:var(--accent)}
+.lang-item.active::after{content:'✓';font-size:12px;margin-left:14px}
+
+.nav-burger{display:none;flex:0 0 auto;width:42px;height:42px;align-items:center;justify-content:center;padding:0;
+  border:2px solid rgba(255,255,255,0.16);background:transparent;color:var(--text1);border-radius:10px;cursor:pointer;
+  transition:border-color 0.15s,color 0.15s}
+.nav-burger:hover{border-color:var(--accent);color:var(--accent)}
+.nav-burger svg{width:23px;height:23px;display:block}
+.nav-burger .ico-close{display:none}
+.nav.open .nav-burger .ico-menu{display:none}
+.nav.open .nav-burger .ico-close{display:block}
+@media(max-width:900px){
+  
+  .nav-burger{display:inline-flex;margin-left:auto}
+  
+  .nav-links{display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;
+    flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;
+    background:var(--bg2);border-bottom:2px solid rgba(255,255,255,0.08);
+    box-shadow:0 16px 34px rgba(0,0,0,0.5);padding:8px 20px 18px;
+    max-height:calc(100vh - 62px);overflow-y:auto}
+  .nav.open .nav-links{display:flex}
+  .nav-links>a{padding:15px 6px;font-size:18px;border-top:2px solid rgba(255,255,255,0.06)}
+  .nav-links>a:first-child{border-top:none}
+  .buy-toggle{display:block;width:100%;margin-top:12px}
+  .nav-cta{display:flex;width:100%;justify-content:center}
+  .buy-menu{position:static;transform:none;min-width:0;width:100%;margin-top:8px;box-shadow:none}
+  
+  .nav-actions .lang-trigger{width:auto;min-width:0}
+  .nav-links .lang-toggle{width:100%;margin-top:14px;padding-top:14px;border-top:2px solid rgba(255,255,255,0.06)}
+  .nav-links .lang-trigger{width:100%;justify-content:flex-start}
+  .nav-links .lang-caret{margin-left:auto}
+  .nav-links .lang-panel{position:static;transform:none;margin-top:8px;box-shadow:none;width:100%;max-height:44vh;overflow-y:auto}
+}
+@media(max-width:720px){.nav{padding:0 20px}.nav-inner{gap:12px;padding:12px 0}.nav-actions{gap:10px}.nav-cta{font-size:16px}.lang-trigger{padding:7px 11px}}
+
+
+.hero{position:relative;min-height:84vh;display:flex;align-items:center;overflow:hidden;padding:124px 48px 64px 60px}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg img,.hero-bg video{width:100%;height:100%;object-fit:cover;object-position:center;filter:brightness(0.42) blur(3px);transform:scale(1.06)}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,17,19,0.94) 0%,rgba(17,17,19,0.7) 40%,rgba(17,17,19,0.42) 100%)}
+.hero-inner{position:relative;z-index:1;width:100%;max-width:var(--wrap);margin:0 auto;display:grid;grid-template-columns:minmax(270px,320px) 1fr;gap:44px;align-items:center}
+.hero-card{padding:0}
+
+.hero-card h1{font-size:40px;font-weight:900;line-height:1.32;letter-spacing:0.005em;margin-bottom:18px;word-break:keep-all;overflow-wrap:normal}
+.hero-card h1 .accent{color:var(--accent)}
+.hero-card .lead{font-size:18px;line-height:1.9;margin-bottom:30px;word-break:normal;overflow-wrap:anywhere}
+
+
+.hero-gallery{min-width:0}
+.hero-viewport{display:grid;grid-template-columns:1fr;row-gap:14px}
+.hero-stage{position:relative;min-width:0;aspect-ratio:16/10;border-radius:16px;overflow:hidden;
+  background:var(--bg2);border:2px solid rgba(255,255,255,0.09)}
+.hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:translateX(0);
+  transition:opacity 0.5s ease,transform 0.5s cubic-bezier(0.4,0,0.2,1)}
+.hero-slide.active{opacity:1;transform:translateX(0);z-index:1}
+
+.hero-thumbs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.hero-thumb{flex:0 0 auto;width:72px;aspect-ratio:16/10;border-radius:9px;overflow:hidden;padding:0;cursor:pointer;
+  background:var(--bg2);border:2px solid rgba(255,255,255,0.10);opacity:0.5;
+  transition:opacity 0.15s,border-color 0.15s,transform 0.12s}
+.hero-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-thumb:hover{opacity:0.85;transform:translateY(-2px)}
+.hero-thumb:focus,.hero-thumb:focus-visible{outline:none}
+.hero-thumb.active{opacity:1;border-color:var(--accent)}
+
+.hero-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:44px;height:44px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+  background:rgba(26,26,30,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  border:2px solid rgba(255,255,255,0.14);color:var(--text1);
+  transition:background 0.15s,border-color 0.15s,color 0.15s,transform 0.12s}
+.hero-nav.prev{left:12px}
+.hero-nav.next{right:12px}
+.hero-nav svg{width:22px;height:22px;display:block}
+.hero-nav:hover{border-color:var(--accent);color:var(--accent)}
+.hero-nav:active{transform:translateY(-50%) scale(0.92)}
+.hero-nav:focus,.hero-nav:focus-visible{outline:none}
+@media(max-width:640px){.hero-nav{width:36px;height:36px}.hero-nav svg{width:18px;height:18px}}
+
+@media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:32px}.hero-card{max-width:560px}}
+
+@media(max-width:640px){.hero-card h1{font-size:30px;overflow-wrap:normal}.hero-card{padding:32px 4px}.hero{padding:104px 20px 48px}}
+
+
+.buy-btns{display:flex;flex-wrap:wrap;gap:14px}
+.buy-btn{display:inline-flex;align-items:center;gap:14px;padding:16px 32px;border-radius:14px;font-weight:700;font-size:21px;line-height:1.2;
+  background:var(--bg2);border:2px solid rgba(255,255,255,0.16);color:var(--text1);
+  transition:border-color 0.15s,background 0.15s,transform 0.12s}
+.buy-btn svg{width:30px;height:30px;flex:none;fill:currentColor}
+.buy-btn:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--bg3)}
+
+.hero-card .buy-btns{gap:12px}
+.hero-card .buy-btn{flex:1 1 120px;justify-content:center;gap:10px;padding:13px 16px;font-size:17px}
+.hero-card .buy-btn svg{width:24px;height:24px}
+
+
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;max-width:var(--wrappad);margin:0 auto;padding:70px var(--padR) 70px var(--padL)}
+.feature.tinted{max-width:var(--wrappad);background:var(--bg2);border-radius:20px;padding:56px var(--padR) 56px var(--padL)}
+.feature .media{border-radius:14px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.feature .media img,.feature .media video{width:100%;display:block;background:var(--bg2)}
+.feature.alt .media{order:-1}
+
+.feature>*{min-width:0}
+.feature .media video{width:100%;height:auto}
+.feature h2{font-size:34px;font-weight:900;line-height:1.25;margin-bottom:16px}
+.feature p{font-size:18px;line-height:1.95}
+@media(max-width:820px){
+  .feature{grid-template-columns:1fr;gap:28px;padding:48px 24px}
+  .feature.tinted{padding:36px 24px}
+  .feature.alt .media{order:0}
+  .feature h2{font-size:27px}
+}
+
+
+
+.banner{position:relative;margin:64px 0;overflow:hidden}
+.banner img,.banner video{width:100%;height:500px;object-fit:cover;filter:brightness(0.55);display:block}
+.banner .caption{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 24px}
+.banner h2{font-size:52px;font-weight:900;text-shadow:0 4px 24px rgba(0,0,0,0.7);letter-spacing:0.02em}
+.banner p{font-size:20px;margin-top:12px;text-shadow:0 2px 14px rgba(0,0,0,0.7);max-width:640px}
+@media(max-width:640px){.banner img{height:340px}.banner h2{font-size:32px}}
+
+
+.nodespot{background:var(--bg2);padding:150px 24px;margin:64px 0}
+.nodespot-inner{max-width:1240px;margin:0 auto;text-align:center}
+.nodespot-eyebrow{display:inline-block;color:var(--accent);font-size:16px;font-weight:900;letter-spacing:0.12em;margin-bottom:18px}
+.nodespot h2{font-size:60px;font-weight:900;line-height:1.2;margin-bottom:20px}
+.nodespot .lead{font-size:20px;line-height:1.95;max-width:720px;margin:0 auto 20px;color:var(--text1)}
+.nodespot-media{aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--bg1);border:2px dashed rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:15px}
+.nodespot-media video{width:100%;height:100%;object-fit:cover;display:block;border:none}
+.node-block{margin-top:96px}
+.node-block h3{font-size:34px;font-weight:900;color:var(--accent);margin-bottom:14px}
+.node-block p{font-size:18px;line-height:1.9;max-width:680px;margin:0 auto 32px}
+@media(max-width:640px){.nodespot{padding:80px 18px}.nodespot h2{font-size:36px}.node-block{margin-top:64px}.node-block h3{font-size:26px}}
+
+
+.showcase{max-width:var(--wrappad);margin:96px auto 0;padding:0 var(--padR) 0 var(--padL)}
+.showcase-cat{display:flex;align-items:center;gap:16px;font-size:40px;font-weight:900;letter-spacing:0.02em;margin:0 0 52px}
+.showcase-cat::before{content:'';flex:none;width:7px;height:1.05em;background:var(--accent);border-radius:4px}
+.showcase-title{display:flex;align-items:center;gap:14px;font-size:28px;font-weight:900;letter-spacing:0.02em}
+.showcase-title::before{content:'';flex:none;width:6px;height:1.1em;background:var(--accent);border-radius:3px}
+.feat-cat{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.feat-cat+.feat-cat{margin-top:0}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:64px 48px;margin-top:44px}
+.feat-card{text-align:center}
+.feat-card h3{font-size:21px;font-weight:900;color:var(--accent);margin-bottom:16px}
+.feat-card .shot{border:2px solid rgba(255,255,255,0.12);border-radius:10px;overflow:hidden;background:var(--bg2);box-shadow:0 10px 28px rgba(0,0,0,0.4);aspect-ratio:16/10}
+.feat-card .shot img,.feat-card .shot video{width:100%;height:100%;object-fit:cover;display:block}
+.feat-card p{font-size:17px;line-height:1.8;color:var(--text1);margin-top:16px}
+
+.feat-card h3,.feat-card p{word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+html[lang="zh"] .feat-card h3,html[lang="zh"] .feat-card p,html[lang="zh-tw"] .feat-card h3,html[lang="zh-tw"] .feat-card p{word-break:normal}
+@media(max-width:820px){.feat-grid{grid-template-columns:1fr 1fr;gap:34px 26px}.showcase-title{font-size:27px}.showcase{padding-left:24px;padding-right:24px}}
+@media(max-width:540px){.feat-grid{grid-template-columns:1fr}}
+.groupset{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px;text-align:left;align-items:start}
+.groupbox{background:var(--bg2);border:2px solid rgba(255,255,255,0.09);border-radius:16px;padding:10px 24px 20px}
+.groupbox-title{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:900;color:var(--text1);letter-spacing:0.04em;padding:18px 0 14px}
+.groupbox-title svg{width:22px;height:22px;flex:none}
+.groupbox ul{list-style:none}
+.groupbox li{padding:16px 0;border-top:2px solid rgba(255,255,255,0.08)}
+.groupbox li b{display:block;font-size:17px;font-weight:900;line-height:1.4;color:var(--accent);margin-bottom:7px}
+.groupbox li span{display:block;font-size:16px;font-weight:700;color:var(--text1);line-height:1.8;padding-left:14px}
+@media(max-width:820px){.groupset{grid-template-columns:1fr;gap:18px}}
+
+
+.platforms{text-align:center;padding:90px 24px;margin-top:64px}
+.platforms h2{display:flex;align-items:center;gap:16px;font-size:40px;font-weight:900;max-width:760px;margin:0 auto 28px}
+.platforms h2::before{content:'';flex:none;width:7px;height:1.05em;background:var(--accent);border-radius:4px}
+.platforms .lead{font-size:19px;line-height:1.9;max-width:620px;margin:0 auto 30px}
+.specs{max-width:760px;margin:10px auto 0;text-align:left}
+.spec-row{display:grid;grid-template-columns:180px 1fr;gap:24px;padding:20px 6px;border-top:2px solid rgba(255,255,255,0.08)}
+.spec-row:last-child{border-bottom:2px solid rgba(255,255,255,0.08)}
+.spec-row dt{color:var(--accent);font-size:17px}
+.spec-row dd{font-size:17px;line-height:1.9}
+.lang-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.lang-chip{font-size:13px;padding:4px 11px;border:2px solid rgba(255,255,255,0.14);border-radius:999px;line-height:1.3}
+.lang-acc{margin-top:0}
+.lang-acc summary{cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:var(--text1);font-size:17px;line-height:1.9;list-style:none;user-select:none}
+.lang-acc summary:hover{color:var(--accent)}
+.lang-acc summary::-webkit-details-marker{display:none}
+.lang-acc summary::after{content:'▾';font-size:20px;line-height:1;color:var(--accent);transition:transform 0.15s}
+.lang-acc[open] summary::after{transform:rotate(180deg)}
+.fmt-group{margin-top:16px}
+.fmt-label{font-size:15px;color:var(--accent)}
+.fmt-note{font-size:14px;color:var(--sub);margin-top:8px;line-height:1.75}
+@media(max-width:640px){.spec-row{grid-template-columns:1fr;gap:6px;padding:16px 4px}}
+
+
+.cta{text-align:center;padding:104px 24px 120px;background:var(--bg2);margin-top:72px}
+.cta-trust{margin-top:26px;font-size:15px;color:var(--sub);letter-spacing:0.02em}
+.cta h2{font-size:52px;font-weight:900;margin-bottom:16px}
+.cta h2 .accent{color:var(--accent)}
+.cta .lead{font-size:21px;margin-bottom:40px}
+.cta .buy-btns{justify-content:center}
+.cta .buy-btn{font-size:24px;padding:20px 44px;border-radius:16px}
+.cta .buy-btn svg{width:34px;height:34px}
+@media(max-width:640px){.cta h2{font-size:36px}.cta .buy-btn{font-size:20px;padding:16px 32px}}
+
+
+.copyright{text-align:center;padding:40px 24px;font-size:14px;color:var(--sub)}
+
+
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease-out,transform 0.6s ease-out}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+
+<nav class="nav">
+  <div class="nav-inner">
+  <a href="#top" class="nav-brand"><img src="images/textvas-icon.png" alt="">Textvas</a>
+  <div class="nav-links" id="nav-links-menu">
+    <a href="#features"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l1.9 5.1L19 12l-5.1 1.9L12 19l-1.9-5.1L5 12l5.1-1.9z"/></svg><span class="i18n" data-ja="機能紹介" data-en="Features" data-zh="功能介绍" data-zh-tw="功能介紹" data-ko="기능 소개" data-es="Funciones" data-pt-br="Recursos" data-de="Funktionen" data-fr="Fonctionnalités" data-ru="Возможности" data-uk="Функції">機能紹介</span></a>
+    <a href="#platforms"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span class="i18n" data-ja="動作環境" data-en="Requirements" data-zh="运行环境" data-zh-tw="執行環境" data-ko="시스템 요구 사항" data-es="Requisitos" data-pt-br="Requisitos" data-de="Systemvoraussetzungen" data-fr="Configuration" data-ru="Требования" data-uk="Вимоги">動作環境</span></a>
+    <a href="https://typocraft.github.io/textvas-help/"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.5 5.5 8 5 4 5v13c4 0 6.5.5 8 1.5 1.5-1 4-1.5 8-1.5V5c-4 0-6.5.5-8 1.5z"/><path d="M12 6.5v13"/></svg><span class="i18n" data-ja="ヘルプ" data-en="Help" data-zh="帮助" data-zh-tw="說明" data-ko="도움말" data-es="Ayuda" data-pt-br="Ajuda" data-de="Hilfe" data-fr="Aide" data-ru="Справка" data-uk="Довідка">ヘルプ</span></a>
+    <a href="https://typocraft.itch.io/textvas" target="_blank" rel="noopener"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg><span class="i18n" data-ja="体験版" data-en="Free Trial" data-zh="试用版" data-zh-tw="試用版" data-ko="체험판" data-es="Versión de prueba" data-pt-br="Versão de teste" data-de="Testversion" data-fr="Version d'essai" data-ru="Пробная версия" data-uk="Пробна версія">体験版</span></a>
+    <div class="buy-toggle" id="buy-toggle">
+      <button type="button" class="nav-cta" id="buy-trigger" aria-haspopup="true" aria-expanded="false"><span class="i18n" data-ja="今すぐ購入" data-en="Buy Now" data-zh="立即购买" data-zh-tw="立即購買" data-ko="지금 구매" data-es="Comprar ahora" data-pt-br="Comprar agora" data-de="Jetzt kaufen" data-fr="Acheter" data-ru="Купить" data-uk="Купити">今すぐ購入</span></button>
+      <div class="buy-menu" id="buy-menu" role="menu">
+        <a href="https://typocraft.itch.io/textvas" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.62-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-7.945.053-8.87.133zm6.376 6.477a2.74 2.74 0 0 1-.468.602c-.5.49-1.19.795-1.947.795a2.786 2.786 0 0 1-1.95-.795c-.182-.178-.32-.37-.446-.59-.127.222-.303.412-.486.59a2.788 2.788 0 0 1-1.95.795c-.092 0-.187-.025-.264-.052-.107 1.113-.152 2.176-.168 2.95v.005l-.006 1.167c.02 2.334-.23 7.564 1.03 8.85 1.952.454 5.545.662 9.15.663 3.605 0 7.198-.21 9.15-.664 1.26-1.284 1.01-6.514 1.03-8.848l-.006-1.167v-.004c-.016-.775-.06-1.838-.168-2.95-.077.026-.172.052-.263.052a2.788 2.788 0 0 1-1.95-.795c-.184-.178-.36-.368-.486-.59-.127.22-.265.412-.447.59a2.786 2.786 0 0 1-1.95.794c-.76 0-1.446-.303-1.948-.793a2.74 2.74 0 0 1-.468-.602 2.738 2.738 0 0 1-.463.602 2.787 2.787 0 0 1-1.95.794h-.16a2.787 2.787 0 0 1-1.95-.793 2.738 2.738 0 0 1-.464-.602zm-2.004 2.59v.002c.795.002 1.5 0 2.373.953.687-.072 1.406-.108 2.125-.107.72 0 1.438.035 2.125.107.873-.953 1.578-.95 2.372-.953.376 0 1.876 0 2.92 2.934l1.123 4.028c.832 2.995-.266 3.068-1.636 3.07-2.03-.075-3.156-1.55-3.156-3.025-1.124.184-2.436.276-3.748.277-1.312 0-2.624-.093-3.748-.277 0 1.475-1.125 2.95-3.156 3.026-1.37-.004-2.468-.077-1.636-3.072l1.122-4.027c1.045-2.934 2.545-2.934 2.92-2.934zM12 12.714c-.002.002-2.14 1.964-2.523 2.662l1.4-.056v1.22c0 .056.56.033 1.123.007.562.026 1.124.05 1.124-.008v-1.22l1.4.055C14.138 14.677 12 12.713 12 12.713z"/></svg><span>itch.io</span></a>
+        <a href="https://store.steampowered.com/app/4671340/Textvas/" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z"/></svg><span>Steam</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <div class="lang-toggle" id="lang-toggle">
+      <button class="lang-trigger" type="button" id="lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+        <svg class="lang-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <span id="lang-current-label">日本語</span>
+        <span class="lang-caret">▾</span>
+      </button>
+      <div class="lang-panel" role="listbox" id="lang-panel">
+        <div class="lang-item active" data-lang="ja" role="option">日本語</div>
+        <div class="lang-item" data-lang="en" role="option">English</div>
+        <div class="lang-item" data-lang="zh" role="option">简体中文</div>
+        <div class="lang-item" data-lang="zh-tw" role="option">繁體中文</div>
+        <div class="lang-item" data-lang="ko" role="option">한국어</div>
+        <div class="lang-item" data-lang="es" role="option">Español</div>
+        <div class="lang-item" data-lang="pt-br" role="option">Português (BR)</div>
+        <div class="lang-item" data-lang="de" role="option">Deutsch</div>
+        <div class="lang-item" data-lang="fr" role="option">Français</div>
+        <div class="lang-item" data-lang="ru" role="option">Русский</div>
+        <div class="lang-item" data-lang="uk" role="option">Українська</div>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="nav-burger" id="nav-burger" aria-label="メニュー" aria-expanded="false" aria-controls="nav-links-menu">
+    <svg class="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <svg class="ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  </div>
+</nav>
+
+
+<header class="hero" id="top">
+  <div class="hero-inner">
+  <div class="hero-card">
+    <h1 class="i18n"
+      data-ja="テキストと画像<br>を<span class='accent'>自由に</span>並べる。"
+      data-en="Arrange text and images<br><span class='accent'>freely</span>."
+      data-zh="<span class='accent'>自由</span>排布<br>文字与图像。"
+      data-zh-tw="<span class='accent'>自由</span>排佈<br>文字與圖像。"
+      data-ko="텍스트와 이미지를<br><span class='accent'>자유롭게</span> 배치."
+      data-es="Coloca texto e imágenes<br>con total <span class='accent'>libertad</span>."
+      data-pt-br="Organize texto e imagens<br>com total <span class='accent'>liberdade</span>."
+      data-de="Text und Bilder<br><span class='accent'>frei</span> anordnen."
+      data-fr="Disposez texte et images<br>en toute <span class='accent'>liberté</span>."
+      data-ru="Располагайте текст и изображения<br><span class='accent'>свободно</span>." data-uk="Розташовуйте текст і зображення<br><span class='accent'>вільно</span>.">テキストと画像<br>を<span class="accent">自由に</span>並べる。</h1>
+    <p class="lead i18n" data-ja="Textvasはクリエイターから一般ユーザーまで使える直感的なノートアプリです。" data-en="Textvas is an intuitive note app for everyone, from creators to everyday users." data-zh="Textvas 是一款从创作者到普通用户都能上手的直观笔记应用。" data-zh-tw="Textvas 是一款從創作者到一般使用者都能上手的直覺筆記應用程式。" data-ko="Textvas는 크리에이터부터 일반 사용자까지 쓸 수 있는 직관적인 노트 앱입니다." data-es="Textvas es una app de notas intuitiva para todos, desde creadores hasta usuarios cotidianos." data-pt-br="O Textvas é um app de notas intuitivo para todos, de criadores a usuários do dia a dia." data-de="Textvas ist eine intuitive Notiz-App für alle – von Kreativen bis zu Alltagsnutzern." data-fr="Textvas est une application de prise de notes intuitive pour tous, des créatifs aux utilisateurs du quotidien." data-ru="Textvas — интуитивно понятное приложение для заметок для всех: от авторов до обычных пользователей." data-uk="Textvas — інтуїтивно зрозумілий застосунок для нотаток для всіх: від творців до звичайних користувачів.">Textvasはクリエイターから一般ユーザーまで使える直感的なノートアプリです。</p>
+    <div class="buy-btns">
+      <a class="buy-btn" href="https://typocraft.itch.io/textvas" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.62-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-7.945.053-8.87.133zm6.376 6.477a2.74 2.74 0 0 1-.468.602c-.5.49-1.19.795-1.947.795a2.786 2.786 0 0 1-1.95-.795c-.182-.178-.32-.37-.446-.59-.127.222-.303.412-.486.59a2.788 2.788 0 0 1-1.95.795c-.092 0-.187-.025-.264-.052-.107 1.113-.152 2.176-.168 2.95v.005l-.006 1.167c.02 2.334-.23 7.564 1.03 8.85 1.952.454 5.545.662 9.15.663 3.605 0 7.198-.21 9.15-.664 1.26-1.284 1.01-6.514 1.03-8.848l-.006-1.167v-.004c-.016-.775-.06-1.838-.168-2.95-.077.026-.172.052-.263.052a2.788 2.788 0 0 1-1.95-.795c-.184-.178-.36-.368-.486-.59-.127.22-.265.412-.447.59a2.786 2.786 0 0 1-1.95.794c-.76 0-1.446-.303-1.948-.793a2.74 2.74 0 0 1-.468-.602 2.738 2.738 0 0 1-.463.602 2.787 2.787 0 0 1-1.95.794h-.16a2.787 2.787 0 0 1-1.95-.793 2.738 2.738 0 0 1-.464-.602zm-2.004 2.59v.002c.795.002 1.5 0 2.373.953.687-.072 1.406-.108 2.125-.107.72 0 1.438.035 2.125.107.873-.953 1.578-.95 2.372-.953.376 0 1.876 0 2.92 2.934l1.123 4.028c.832 2.995-.266 3.068-1.636 3.07-2.03-.075-3.156-1.55-3.156-3.025-1.124.184-2.436.276-3.748.277-1.312 0-2.624-.093-3.748-.277 0 1.475-1.125 2.95-3.156 3.026-1.37-.004-2.468-.077-1.636-3.072l1.122-4.027c1.045-2.934 2.545-2.934 2.92-2.934zM12 12.714c-.002.002-2.14 1.964-2.523 2.662l1.4-.056v1.22c0 .056.56.033 1.123.007.562.026 1.124.05 1.124-.008v-1.22l1.4.055C14.138 14.677 12 12.713 12 12.713z"/></svg>
+        <span>itch.io</span>
+      </a>
+      <a class="buy-btn" href="https://store.steampowered.com/app/4671340/Textvas/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z"/></svg>
+        <span>Steam</span>
+      </a>
+    </div>
+  </div>
+  <div class="hero-gallery">
+    <div class="hero-viewport">
+      <div class="hero-stage" id="hero-stage">
+        <img class="hero-slide active" src="images/jpg/1.webp" alt="" fetchpriority="high">
+        <img class="hero-slide" src="images/jpg/2.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/3.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/3a.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/4.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/5.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/6.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/6a.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/7.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/8.webp" alt="" loading="lazy">
+        <img class="hero-slide" src="images/jpg/14.webp" alt="" loading="lazy">
+        <button type="button" class="hero-nav prev" id="hero-prev" aria-label="前の画像"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button type="button" class="hero-nav next" id="hero-next" aria-label="次の画像"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="hero-thumbs" id="hero-thumbs">
+      <button type="button" class="hero-thumb active" data-i="0"><img src="images/jpg/1.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="1"><img src="images/jpg/2.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="2"><img src="images/jpg/3.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="3"><img src="images/jpg/3a.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="4"><img src="images/jpg/4.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="5"><img src="images/jpg/5.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="6"><img src="images/jpg/6.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="7"><img src="images/jpg/6a.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="8"><img src="images/jpg/7.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="9"><img src="images/jpg/8.webp" alt="" loading="lazy"></button>
+      <button type="button" class="hero-thumb" data-i="10"><img src="images/jpg/14.webp" alt="" loading="lazy"></button>
+      </div>
+    </div>
+  </div>
+  </div>
+</header>
+
+
+<div id="features"></div>
+
+<section class="feature fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="フリー配置" data-en="Free Placement" data-zh="自由排布" data-zh-tw="自由排佈" data-ko="자유 배치" data-es="Colocación libre" data-pt-br="Posicionamento livre" data-de="Freie Anordnung" data-fr="Placement libre" data-ru="Свободное размещение" data-uk="Вільне розміщення">フリー配置</h2>
+    <p class="i18n" data-ja="ボード上の好きな位置に、テキストと画像を配置できます。<br>ダブルクリックで入力を開始でき、画像とテキストはクリップボードから貼り付け可能です。<br>配置後もドラッグで移動できます。" data-en="Place text and images anywhere on the board.<br>Double-click to start typing, and paste images and text from the clipboard.<br>Drag to move items even after placing them." data-zh="可在画板上的任意位置放置文字与图像。<br>双击即可开始输入，图像和文字都能从剪贴板粘贴。<br>放置后也能拖动移动。" data-zh-tw="可在畫板上的任意位置放置文字與圖像。<br>雙擊即可開始輸入，圖像和文字都能從剪貼簿貼上。<br>放置後也能拖曳移動。" data-ko="보드 위 원하는 위치에 텍스트와 이미지를 배치할 수 있습니다.<br>더블클릭으로 입력을 시작하고, 이미지와 텍스트는 클립보드에서 붙여넣을 수 있습니다.<br>배치한 뒤에도 드래그로 옮길 수 있습니다." data-es="Coloca texto e imágenes donde quieras en el lienzo.<br>Haz doble clic para empezar a escribir y pega imágenes y texto desde el portapapeles.<br>Arrástralos para moverlos incluso después de colocarlos." data-pt-br="Posicione texto e imagens em qualquer lugar do quadro.<br>Dê um clique duplo para começar a digitar e cole imagens e texto da área de transferência.<br>Arraste para mover mesmo depois de posicionar." data-de="Platziere Text und Bilder an beliebiger Stelle auf dem Board.<br>Per Doppelklick beginnst du die Eingabe; Bilder und Text lassen sich aus der Zwischenablage einfügen.<br>Auch nach dem Platzieren kannst du sie per Drag verschieben." data-fr="Placez texte et images où vous voulez sur le tableau.<br>Double-cliquez pour commencer à saisir, et collez images et texte depuis le presse-papiers.<br>Déplacez-les par glisser-déposer même après les avoir placés." data-ru="Размещайте текст и изображения в любом месте доски.<br>Двойной клик — и можно печатать; изображения и текст вставляются из буфера обмена.<br>Их можно перетаскивать даже после размещения." data-uk="Розміщуйте текст і зображення будь-де на дошці.<br>Подвійний клік — і можна друкувати; зображення та текст вставляються з буфера обміну.<br>Їх можна перетягувати навіть після розміщення.">ボード上の好きな位置に、テキストと画像を配置できます。<br>ダブルクリックで入力を開始でき、画像とテキストはクリップボードから貼り付け可能です。<br>配置後もドラッグで移動できます。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/1_free-placement.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<section class="feature tinted alt fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="タブとフォルダによる管理" data-en="Tabs & Folders" data-zh="标签与文件夹管理" data-zh-tw="分頁與資料夾管理" data-ko="탭과 폴더로 관리" data-es="Gestión con pestañas y carpetas" data-pt-br="Gerenciamento com abas e pastas" data-de="Verwaltung mit Tabs und Ordnern" data-fr="Gestion par onglets et dossiers" data-ru="Управление вкладками и папками" data-uk="Вкладки та папки">タブとフォルダによる管理</h2>
+    <p class="i18n" data-ja="複数のボードをタブで管理し、フォルダにまとめて整理できます。<br>タブの複製や並び替えにも対応しており、用途ごとに整理することができます。" data-en="Manage multiple boards with tabs and organize them into folders.<br>Duplicate and reorder tabs to sort them by purpose." data-zh="用标签管理多个画板，并归入文件夹整理。<br>支持复制和重排标签，可按用途分类整理。" data-zh-tw="以分頁管理多個畫板，並歸入資料夾整理。<br>支援複製與重新排列分頁，可依用途分類整理。" data-ko="여러 보드를 탭으로 관리하고 폴더로 묶어 정리할 수 있습니다.<br>탭 복제와 순서 변경도 지원해 용도별로 정리할 수 있습니다." data-es="Gestiona varios lienzos con pestañas y organízalos en carpetas.<br>Duplica y reordena las pestañas para clasificarlas por uso." data-pt-br="Gerencie vários quadros com abas e organize-os em pastas.<br>Duplique e reordene as abas para classificá-las por finalidade." data-de="Verwalte mehrere Boards über Tabs und ordne sie in Ordnern.<br>Tabs lassen sich duplizieren und neu anordnen, um sie nach Zweck zu sortieren." data-fr="Gérez plusieurs tableaux par onglets et organisez-les dans des dossiers.<br>Dupliquez et réorganisez les onglets pour les classer par usage." data-ru="Управляйте несколькими досками с помощью вкладок и объединяйте их в папки.<br>Вкладки можно дублировать и менять местами, сортируя по назначению." data-uk="Керуйте кількома дошками за допомогою вкладок і об’єднуйте їх у папки.<br>Вкладки можна дублювати та міняти місцями, сортуючи за призначенням.">複数のボードをタブで管理し、フォルダにまとめて整理できます。<br>タブの複製や並び替えにも対応しており、用途ごとに整理することができます。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/2_tabs-folders.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<section class="feature fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="カスタマイズ性の高いUI" data-en="Highly Customizable UI" data-zh="高度可定制的界面" data-zh-tw="高度可自訂的介面" data-ko="높은 자유도의 UI" data-es="Interfaz muy personalizable" data-pt-br="Interface altamente personalizável" data-de="Hochgradig anpassbare Oberfläche" data-fr="Interface hautement personnalisable" data-ru="Гибко настраиваемый интерфейс" data-uk="Гнучко налаштовуваний інтерфейс">カスタマイズ性の高いUI</h2>
+    <p class="i18n" data-ja="ダークテーマ、モノクロ、桜、ノートタイプなどの基本テーマを搭載しています。<br>PCにインストールされているフォントから自由に選択でき、サイズも調整できます。<br>作業内容や好みに合わせて見た目をカスタマイズできます。" data-en="Comes with base themes like Dark, Monochrome, Sakura, and Notebook.<br>Choose freely from the fonts installed on your PC and adjust their size.<br>Customize the look to match your work and taste." data-zh="内置深色、单色、樱花、笔记本等基础主题。<br>可自由选用电脑中已安装的字体，并调整字号。<br>可根据工作内容和喜好自定义外观。" data-zh-tw="內建深色、單色、櫻花、筆記本等基礎主題。<br>可自由選用電腦中已安裝的字型，並調整字級。<br>可依工作內容與喜好自訂外觀。" data-ko="다크, 모노크롬, 사쿠라, 노트 타입 등 기본 테마를 갖추고 있습니다.<br>PC에 설치된 글꼴에서 자유롭게 고르고 크기도 조절할 수 있습니다.<br>작업 내용과 취향에 맞춰 외형을 커스터마이즈할 수 있습니다." data-es="Incluye temas base como Oscuro, Monocromo, Sakura y Cuaderno.<br>Elige libremente entre las fuentes instaladas en tu PC y ajusta su tamaño.<br>Personaliza el aspecto según tu trabajo y tus gustos." data-pt-br="Vem com temas básicos como Escuro, Monocromático, Sakura e Caderno.<br>Escolha livremente entre as fontes instaladas no seu PC e ajuste o tamanho.<br>Personalize a aparência conforme seu trabalho e gosto." data-de="Enthält Basis-Themes wie Dunkel, Monochrom, Sakura und Notizbuch.<br>Wähle frei aus den auf dem PC installierten Schriften und passe die Größe an.<br>Passe das Aussehen an deine Arbeit und deinen Geschmack an." data-fr="Fournit des thèmes de base : Sombre, Monochrome, Sakura et Carnet.<br>Choisissez librement parmi les polices installées sur votre PC et ajustez leur taille.<br>Personnalisez l’apparence selon votre travail et vos goûts." data-ru="В комплекте базовые темы: тёмная, монохромная, «сакура» и «блокнот».<br>Свободно выбирайте из установленных на ПК шрифтов и меняйте их размер.<br>Настраивайте вид под свою работу и вкус." data-uk="У комплекті базові теми: темна, монохромна, «сакура» та «блокнот».<br>Вільно обирайте зі шрифтів, встановлених на ПК, і змінюйте їхній розмір.<br>Налаштовуйте вигляд під свою роботу та смак.">ダークテーマ、モノクロ、桜、ノートタイプなどの基本テーマを搭載しています。<br>PCにインストールされているフォントから自由に選択でき、サイズも調整できます。<br>作業内容や好みに合わせて見た目をカスタマイズできます。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/3_ui-custom.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<div class="banner fade-in">
+  <video src="images/WEBM/6_touch.webm" autoplay loop muted playsinline></video>
+  <div class="caption">
+    <h2 class="i18n" data-ja="タッチパネル対応" data-en="Touchscreen Support" data-zh="支持触控屏" data-zh-tw="支援觸控螢幕" data-ko="터치스크린 지원" data-es="Compatible con pantalla táctil" data-pt-br="Compatível com tela sensível ao toque" data-de="Touchscreen-Unterstützung" data-fr="Prise en charge tactile" data-ru="Поддержка сенсорного экрана" data-uk="Підтримка сенсорного екрана">タッチパネル対応</h2>
+    <p class="i18n" data-ja="スワイプやピンチイン・アウトに対応しています。<br>指でのタッチ操作が可能です。" data-en="Supports swipe and pinch-to-zoom.<br>Operate it with touch." data-zh="支持滑动和双指缩放。<br>可用手指进行触控操作。" data-zh-tw="支援滑動與雙指縮放。<br>可用手指進行觸控操作。" data-ko="스와이프와 핀치 줌을 지원합니다.<br>손가락 터치로 조작할 수 있습니다." data-es="Admite deslizar y pellizcar para hacer zoom.<br>Puedes manejarlo con el dedo." data-pt-br="Suporta deslizar e pinçar para dar zoom.<br>Dá para operar com o toque." data-de="Unterstützt Wischen und Pinch-to-Zoom.<br>Bedienung per Fingerberührung möglich." data-fr="Prend en charge le balayage et le pincement pour zoomer.<br>Utilisable au doigt." data-ru="Поддерживает свайп и щипковое масштабирование.<br>Управление касанием пальцем." data-uk="Підтримує свайп і масштабування щипком.<br>Керування дотиком пальця.">スワイプやピンチイン・アウトに対応しています。<br>指でのタッチ操作が可能です。</p>
+  </div>
+</div>
+
+<section class="feature fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="外部デバイスの実行に対応" data-en="Runs from External Devices" data-zh="支持从外部设备启动" data-zh-tw="支援從外部裝置啟動" data-ko="외장 장치 실행 지원" data-es="Compatible con dispositivos externos" data-pt-br="Compatível com dispositivos externos" data-de="Ausführung von externen Geräten" data-fr="Compatible avec les périphériques externes" data-ru="Запуск с внешних устройств" data-uk="Запуск із зовнішніх пристроїв">外部デバイスの実行に対応</h2>
+    <p class="i18n" data-ja=".txv という独自拡張子でプロジェクトを保存できます。<br>外部デバイスにプロジェクトを登録することですぐに開くことができます。<br>アイコンを同梱しています。" data-en="Save projects in the dedicated .txv format.<br>Register a project on an external device to open it instantly.<br>An icon is included." data-zh="可将项目保存为专用的 .txv 格式。<br>将项目注册到外部设备后即可快速打开。<br>随附图标。" data-zh-tw="可將專案儲存為專用的 .txv 格式。<br>將專案登錄到外部裝置後即可快速開啟。<br>隨附圖示。" data-ko="전용 확장자 .txv로 프로젝트를 저장할 수 있습니다.<br>외장 장치에 프로젝트를 등록해 두면 바로 열 수 있습니다.<br>아이콘을 함께 제공합니다." data-es="Guarda proyectos en el formato propio .txv.<br>Registra un proyecto en un dispositivo externo para abrirlo al instante.<br>Se incluye un icono." data-pt-br="Salve projetos no formato próprio .txv.<br>Registre um projeto em um dispositivo externo para abri-lo na hora.<br>Um ícone está incluído." data-de="Speichere Projekte im eigenen Format .txv.<br>Registriere ein Projekt auf einem externen Gerät, um es sofort zu öffnen.<br>Ein Symbol ist enthalten." data-fr="Enregistrez les projets au format dédié .txv.<br>Enregistrez un projet sur un périphérique externe pour l’ouvrir instantanément.<br>Une icône est fournie." data-ru="Сохраняйте проекты в собственном формате .txv.<br>Зарегистрируйте проект на внешнем устройстве, чтобы открывать его мгновенно.<br>Значок входит в комплект." data-uk="Зберігайте проєкти у власному форматі .txv.<br>Зареєструйте проєкт на зовнішньому пристрої, щоб відкривати його миттєво.<br>Значок входить у комплект.">.txv という独自拡張子でプロジェクトを保存できます。<br>外部デバイスにプロジェクトを登録することですぐに開くことができます。<br>アイコンを同梱しています。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/7_external-device.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<section class="feature tinted alt fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="UIスケールとズーム" data-en="UI Scale & Zoom" data-zh="界面缩放与画板缩放" data-zh-tw="介面縮放與畫板縮放" data-ko="UI 배율과 줌" data-es="Escala de interfaz y zoom" data-pt-br="Escala da interface e zoom" data-de="UI-Skalierung und Zoom" data-fr="Échelle de l’interface et zoom" data-ru="Масштаб интерфейса и зум" data-uk="Масштаб інтерфейсу та зум">UIスケールとズーム</h2>
+    <p class="i18n" data-ja="UIサイズは100〜200%で調整できます。ボードのズームはこれとは別に操作できます。<br>4Kモニターから小型のノートPCまで、画面サイズに応じて適切に調整することができます。" data-en="Adjust the UI size from 100% to 200%. Board zoom is controlled separately.<br>From 4K monitors to small laptops, tune it to fit your screen." data-zh="界面大小可在 100%～200% 之间调整，画板缩放则可单独操作。<br>从 4K 显示器到小型笔记本，都能按屏幕尺寸妥善调整。" data-zh-tw="介面大小可在 100%～200% 之間調整，畫板縮放則可單獨操作。<br>從 4K 螢幕到小型筆電，都能依螢幕尺寸妥善調整。" data-ko="UI 크기는 100~200%로 조절할 수 있고, 보드 줌은 이와 별도로 조작합니다.<br>4K 모니터부터 소형 노트북까지 화면 크기에 맞게 조정할 수 있습니다." data-es="Ajusta el tamaño de la interfaz del 100% al 200%. El zoom del lienzo se controla por separado.<br>Desde monitores 4K hasta portátiles pequeños, ajústalo a tu pantalla." data-pt-br="Ajuste o tamanho da interface de 100% a 200%. O zoom do quadro é controlado à parte.<br>De monitores 4K a notebooks pequenos, ajuste conforme a sua tela." data-de="Passe die UI-Größe von 100 % bis 200 % an. Der Board-Zoom wird separat gesteuert.<br>Von 4K-Monitoren bis zu kleinen Laptops – passend zur Bildschirmgröße einstellbar." data-fr="Réglez la taille de l’interface de 100 % à 200 %. Le zoom du tableau se contrôle séparément.<br>Des écrans 4K aux petits portables, ajustez selon votre écran." data-ru="Меняйте размер интерфейса от 100 % до 200 %. Масштаб доски регулируется отдельно.<br>От 4K-мониторов до компактных ноутбуков — подстройте под свой экран." data-uk="Змінюйте розмір інтерфейсу від 100% до 200%. Масштаб дошки регулюється окремо.<br>Від 4K-моніторів до компактних ноутбуків — підлаштуйте під свій екран.">UIサイズは100〜200%で調整できます。ボードのズームはこれとは別に操作できます。<br>4Kモニターから小型のノートPCまで、画面サイズに応じて適切に調整することができます。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/4_ui-scale.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<section class="feature fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="スクリーンショット" data-en="Screenshot" data-zh="截图" data-zh-tw="螢幕截圖" data-ko="스크린샷" data-es="Captura de pantalla" data-pt-br="Captura de tela" data-de="Screenshot" data-fr="Capture d’écran" data-ru="Скриншот" data-uk="Скриншот">スクリーンショット</h2>
+    <p class="i18n" style="word-break:normal;overflow-wrap:anywhere" data-ja="カメラアイコン、または Ctrl+P で範囲を選んでキャプチャできます。撮影した画像は、そのままボードに貼り付けられます。" data-en="Select an area to capture with the camera icon or Ctrl+P. The captured image is pasted straight onto the board." data-zh="点击相机图标或按 Ctrl+P 选择范围即可截图。截取的图像可直接粘贴到画板上。" data-zh-tw="點選相機圖示或按 Ctrl+P 選擇範圍即可截圖。擷取的圖像可直接貼到畫板上。" data-ko="카메라 아이콘 또는 Ctrl+P로 범위를 선택해 캡처할 수 있습니다. 촬영한 이미지는 그대로 보드에 붙여넣어집니다." data-es="Selecciona un área para capturar con el icono de cámara o Ctrl+P. La imagen capturada se pega directamente en el lienzo." data-pt-br="Selecione uma área para capturar com o ícone da câmera ou Ctrl+P. A imagem capturada é colada diretamente no quadro." data-de="Wähle mit dem Kamerasymbol oder Strg+P einen Bereich zum Aufnehmen. Das aufgenommene Bild wird direkt auf das Board eingefügt." data-fr="Sélectionnez une zone à capturer avec l’icône appareil photo ou Ctrl+P. L’image capturée est collée directement sur le tableau." data-ru="Выберите область для снимка значком камеры или Ctrl+P. Готовое изображение вставляется прямо на доску." data-uk="Виберіть область для знімка значком камери або Ctrl+P. Готове зображення вставляється прямо на дошку.">カメラアイコン、または Ctrl+P で範囲を選んでキャプチャできます。撮影した画像は、そのままボードに貼り付けられます。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/screenshot.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<section class="feature tinted alt fade-in">
+  <div class="text">
+    <h2 class="i18n" data-ja="好きな画像を背景に表示" data-en="Set Any Image as Background" data-zh="将喜欢的图像设为背景" data-zh-tw="將喜歡的圖像設為背景" data-ko="원하는 이미지를 배경으로" data-es="Cualquier imagen como fondo" data-pt-br="Qualquer imagem como plano de fundo" data-de="Beliebiges Bild als Hintergrund" data-fr="N’importe quelle image en fond" data-ru="Любое изображение как фон" data-uk="Будь-яке зображення як фон">好きな画像を背景に表示</h2>
+    <p class="i18n" data-ja="ボードの背景に、好みの画像を設定できます。<br>ゲームキャラクターや自作イラストなど、自由に指定可能です。" data-en="Set any image you like as the board background.<br>Game characters, your own illustrations — anything you want." data-zh="可为画板背景设置喜欢的图像。<br>游戏角色、自绘插画等都能自由指定。" data-zh-tw="可為畫板背景設定喜歡的圖像。<br>遊戲角色、自繪插畫等都能自由指定。" data-ko="보드 배경에 원하는 이미지를 설정할 수 있습니다.<br>게임 캐릭터나 직접 그린 일러스트 등 자유롭게 지정할 수 있습니다." data-es="Establece la imagen que quieras como fondo del lienzo.<br>Personajes de videojuegos, tus propias ilustraciones… lo que quieras." data-pt-br="Defina a imagem que quiser como plano de fundo do quadro.<br>Personagens de jogos, suas próprias ilustrações… o que você quiser." data-de="Lege ein beliebiges Bild als Board-Hintergrund fest.<br>Spielfiguren, eigene Illustrationen – ganz nach Wunsch." data-fr="Définissez l’image de votre choix en fond de tableau.<br>Personnages de jeux, vos propres illustrations… comme vous voulez." data-ru="Установите любое изображение фоном доски.<br>Игровые персонажи, собственные иллюстрации — что угодно." data-uk="Встановіть будь-яке зображення фоном дошки.<br>Ігрові персонажі, власні ілюстрації — що завгодно.">ボードの背景に、好みの画像を設定できます。<br>ゲームキャラクターや自作イラストなど、自由に指定可能です。</p>
+  </div>
+  <div class="media"><video src="images/WEBM/8_background.webm" loop muted playsinline preload="none"></video></div>
+</section>
+
+<div class="banner fade-in">
+  <video src="images/WEBM/9_multilang.webm" autoplay loop muted playsinline></video>
+  <div class="caption">
+    <h2 class="i18n" data-ja="多言語対応" data-en="Multilingual" data-zh="多语言支持" data-zh-tw="多語言支援" data-ko="다국어 지원" data-es="Multilingüe" data-pt-br="Multilíngue" data-de="Mehrsprachig" data-fr="Multilingue" data-ru="Многоязычность" data-uk="Багатомовність">多言語対応</h2>
+    <p class="i18n" data-ja="29言語に対応（UIのみ）。アプリ内の設定から切り替えできます。" data-en="Supports 29 languages (UI only). Switch from the in-app settings." data-zh="支持 29 种语言（仅界面）。可在应用内设置中切换。" data-zh-tw="支援 29 種語言（僅介面）。可在應用程式內設定中切換。" data-ko="29개 언어를 지원합니다(UI만). 앱 내 설정에서 전환할 수 있습니다." data-es="Admite 29 idiomas (solo la interfaz). Cámbialo desde los ajustes de la app." data-pt-br="Suporta 29 idiomas (apenas a interface). Troque nas configurações do app." data-de="Unterstützt 29 Sprachen (nur UI). Umschaltbar in den App-Einstellungen." data-fr="Prend en charge 29 langues (interface uniquement). Changez depuis les réglages de l’app." data-ru="Поддерживает 29 языков (только интерфейс). Переключение в настройках приложения." data-uk="Підтримує 29 мов (лише інтерфейс). Перемикання в налаштуваннях застосунку.">29言語に対応（UIのみ）。アプリ内の設定から切り替えできます。</p>
+  </div>
+</div>
+
+
+<section class="nodespot fade-in">
+  <div class="nodespot-inner">
+    <span class="nodespot-eyebrow i18n" data-ja="ゲーム開発・創作に" data-en="For game dev & creative work" data-zh="用于游戏开发与创作" data-zh-tw="用於遊戲開發與創作" data-ko="게임 개발·창작에" data-es="Para desarrollo de juegos y creación" data-pt-br="Para desenvolvimento de jogos e criação" data-de="Für Spieleentwicklung & kreatives Arbeiten" data-fr="Pour le dev de jeux et la création" data-ru="Для геймдева и творчества" data-uk="Для геймдеву та творчості">ゲーム開発・創作に</span>
+    <h2 class="i18n" data-ja="ノードエディター" data-en="Node Editor" data-zh="节点编辑器" data-zh-tw="節點編輯器" data-ko="노드 에디터" data-es="Editor de nodos" data-pt-br="Editor de nós" data-de="Node-Editor" data-fr="Éditeur de nœuds" data-ru="Редактор узлов" data-uk="Редактор вузлів">ノードエディター</h2>
+    <p class="lead i18n" data-ja="処理の流れや会話を、ノードでつないで図として組み立てられます。用途に応じて2種類のノードを使い分けられます。" data-en="Connect nodes to build flows and conversations into diagrams. Two node types are available for different needs." data-zh="用节点连接处理流程或对话，组合成图。可根据用途使用两种节点。" data-zh-tw="以節點連接處理流程或對話，組合成圖。可依用途使用兩種節點。" data-ko="처리 흐름이나 대화를 노드로 연결해 도식으로 구성할 수 있습니다. 용도에 따라 두 종류의 노드를 나눠 쓸 수 있습니다." data-es="Conecta nodos para armar flujos y conversaciones como diagramas. Hay dos tipos de nodos según la necesidad." data-pt-br="Conecte nós para montar fluxos e conversas como diagramas. Há dois tipos de nós conforme a necessidade." data-de="Verbinde Nodes, um Abläufe und Dialoge als Diagramme aufzubauen. Zwei Node-Typen stehen je nach Bedarf bereit." data-fr="Reliez des nœuds pour construire des flux et des dialogues sous forme de schémas. Deux types de nœuds selon les besoins." data-ru="Соединяйте узлы, чтобы выстраивать процессы и диалоги в виде схем. Доступны два типа узлов под разные задачи." data-uk="З’єднуйте вузли, щоб вибудовувати процеси й діалоги у вигляді схем. Доступні два типи вузлів під різні задачі.">処理の流れや会話を、ノードでつないで図として組み立てられます。用途に応じて2種類のノードを使い分けられます。</p>
+    <div class="node-block">
+      <h3 class="i18n" data-ja="フローチャートノード" data-en="Flowchart Nodes" data-zh="流程图节点" data-zh-tw="流程圖節點" data-ko="플로차트 노드" data-es="Nodos de diagrama de flujo" data-pt-br="Nós de fluxograma" data-de="Flussdiagramm-Nodes" data-fr="Nœuds d’organigramme" data-ru="Узлы блок-схемы" data-uk="Вузли блок-схеми">フローチャートノード</h3>
+      <p class="i18n" data-ja="処理や分岐を、四角・ひし形などのノードでつないで図にできます。" data-en="Turn processes and branches into diagrams by linking nodes like rectangles and diamonds." data-zh="用矩形、菱形等节点连接处理与分支，组成流程图。" data-zh-tw="以矩形、菱形等節點連接處理與分支，組成流程圖。" data-ko="사각형·마름모 등의 노드로 처리와 분기를 연결해 도식으로 만들 수 있습니다." data-es="Convierte procesos y ramificaciones en diagramas enlazando nodos como rectángulos y rombos." data-pt-br="Transforme processos e ramificações em diagramas ligando nós como retângulos e losangos." data-de="Verwandle Abläufe und Verzweigungen in Diagramme, indem du Nodes wie Rechtecke und Rauten verbindest." data-fr="Transformez processus et branchements en schémas en reliant des nœuds comme rectangles et losanges." data-ru="Превращайте процессы и ветвления в схемы, соединяя узлы — прямоугольники, ромбы и другие." data-uk="Перетворюйте процеси й розгалуження на схеми, з’єднуючи вузли — прямокутники, ромби та інші.">処理や分岐を、四角・ひし形などのノードでつないで図にできます。</p>
+      <div class="nodespot-media"><video src="images/WEBM/node-flowchart.webm" loop muted playsinline preload="none"></video></div>
+    </div>
+    <div class="node-block">
+      <h3 class="i18n" data-ja="ダイアログノード" data-en="Dialogue Nodes" data-zh="对话节点" data-zh-tw="對話節點" data-ko="다이얼로그 노드" data-es="Nodos de diálogo" data-pt-br="Nós de diálogo" data-de="Dialog-Nodes" data-fr="Nœuds de dialogue" data-ru="Узлы диалога" data-uk="Вузли діалогу">ダイアログノード</h3>
+      <p class="i18n" data-ja="会話やセリフをノードとして並べ、流れを整理できます。" data-en="Lay out conversations and lines as nodes to organize their flow." data-zh="将对话与台词作为节点排列，理清流程。" data-zh-tw="將對話與台詞作為節點排列，理清流程。" data-ko="대화나 대사를 노드로 배치해 흐름을 정리할 수 있습니다." data-es="Coloca conversaciones y diálogos como nodos para ordenar su flujo." data-pt-br="Disponha conversas e falas como nós para organizar o fluxo." data-de="Ordne Gespräche und Zeilen als Nodes an, um ihren Verlauf zu strukturieren." data-fr="Disposez conversations et répliques en nœuds pour en organiser le déroulé." data-ru="Располагайте диалоги и реплики в виде узлов, упорядочивая их последовательность." data-uk="Розташовуйте діалоги та репліки у вигляді вузлів, упорядковуючи їхню послідовність.">会話やセリフをノードとして並べ、流れを整理できます。</p>
+      <div class="nodespot-media"><video src="images/WEBM/node-dialog.webm" loop muted playsinline preload="none"></video></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="showcase fade-in">
+  <div class="feat-cat">
+    <h2 class="showcase-title i18n" data-ja="テキストと編集" data-en="Text & Editing" data-zh="文本与编辑" data-zh-tw="文字與編輯" data-ko="텍스트와 편집" data-es="Texto y edición" data-pt-br="Texto e edição" data-de="Text & Bearbeitung" data-fr="Texte et édition" data-ru="Текст и редактирование" data-uk="Текст і редагування">テキストと編集</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="テキストの分割機能" data-en="Split Text" data-zh="拆分文本" data-zh-tw="拆分文字" data-ko="텍스트 분할" data-es="Dividir texto" data-pt-br="Dividir texto" data-de="Text teilen" data-fr="Diviser le texte" data-ru="Разделение текста" data-uk="Розділення тексту">テキストの分割機能</h3>
+        <div class="shot"><video src="images/WEBM/text-split.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="1枚のカードを、行ごと・段落ごとに分割できます。" data-en="Split a single card by line or by paragraph." data-zh="可将一张卡片按行或按段落拆分。" data-zh-tw="可將一張卡片按行或按段落拆分。" data-ko="한 장의 카드를 줄 단위·문단 단위로 분할할 수 있습니다." data-es="Divide una tarjeta por líneas o por párrafos." data-pt-br="Divida um cartão por linha ou por parágrafo." data-de="Teile eine Karte zeilen- oder absatzweise." data-fr="Divisez une carte par ligne ou par paragraphe." data-ru="Разбивайте карточку по строкам или по абзацам." data-uk="Розбивайте картку за рядками або за абзацами.">1枚のカードを、行ごと・段落ごとに分割できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="リスト機能" data-en="Lists" data-zh="列表功能" data-zh-tw="清單功能" data-ko="리스트" data-es="Listas" data-pt-br="Listas" data-de="Listen" data-fr="Listes" data-ru="Списки" data-uk="Списки">リスト機能</h3>
+        <div class="shot"><video src="images/WEBM/list-feature.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="行頭に箇条書き・番号・チェックボックスを付与できます。" data-en="Add bullets, numbers, or checkboxes to the start of lines." data-zh="可在行首添加项目符号、编号或复选框。" data-zh-tw="可在行首加入項目符號、編號或核取方塊。" data-ko="행 앞에 글머리 기호·번호·체크박스를 붙일 수 있습니다." data-es="Añade viñetas, números o casillas al inicio de las líneas." data-pt-br="Adicione marcadores, números ou caixas de seleção no início das linhas." data-de="Füge Aufzählungszeichen, Nummern oder Kontrollkästchen am Zeilenanfang hinzu." data-fr="Ajoutez puces, numéros ou cases à cocher en début de ligne." data-ru="Добавляйте маркеры, номера или флажки в начало строк." data-uk="Додавайте маркери, номери або прапорці на початок рядків.">行頭に箇条書き・番号・チェックボックスを付与できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="改行機能" data-en="Line Breaks" data-zh="换行功能" data-zh-tw="換行功能" data-ko="줄바꿈" data-es="Saltos de línea" data-pt-br="Quebras de linha" data-de="Zeilenumbrüche" data-fr="Sauts de ligne" data-ru="Переносы строк" data-uk="Перенесення рядків">改行機能</h3>
+        <div class="shot"><video src="images/WEBM/feat-linebreak.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="テキストの改行を挿入・調整できます。" data-en="Insert and adjust line breaks in your text." data-zh="可插入并调整文本的换行。" data-zh-tw="可插入並調整文字的換行。" data-ko="텍스트의 줄바꿈을 삽입·조정할 수 있습니다." data-es="Inserta y ajusta los saltos de línea del texto." data-pt-br="Insira e ajuste as quebras de linha do texto." data-de="Füge Zeilenumbrüche ein und passe sie an." data-fr="Insérez et ajustez les sauts de ligne du texte." data-ru="Вставляйте и настраивайте переносы строк в тексте." data-uk="Вставляйте й налаштовуйте перенесення рядків у тексті.">テキストの改行を挿入・調整できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="末尾の空白" data-en="Trailing Spaces" data-zh="行尾空格" data-zh-tw="行尾空白" data-ko="끝 공백" data-es="Espacios finales" data-pt-br="Espaços finais" data-de="Leerzeichen am Ende" data-fr="Espaces en fin de ligne" data-ru="Пробелы в конце" data-uk="Пробіли в кінці">末尾の空白</h3>
+        <div class="shot"><video src="images/WEBM/trim-trailing.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="行末の余分な空白をまとめて削除できます。" data-en="Remove extra spaces at the end of lines in bulk." data-zh="可批量删除行尾多余的空格。" data-zh-tw="可批次刪除行尾多餘的空白。" data-ko="행 끝의 불필요한 공백을 한꺼번에 삭제할 수 있습니다." data-es="Elimina de una vez los espacios sobrantes al final de las líneas." data-pt-br="Remova de uma vez os espaços extras no fim das linhas." data-de="Entferne überflüssige Leerzeichen am Zeilenende auf einmal." data-fr="Supprimez en une fois les espaces superflus en fin de ligne." data-ru="Удаляйте лишние пробелы в конце строк одним махом." data-uk="Видаляйте зайві пробіли в кінці рядків одним разом.">行末の余分な空白をまとめて削除できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="マークダウン除去" data-en="Strip Markdown" data-zh="去除 Markdown" data-zh-tw="移除 Markdown" data-ko="마크다운 제거" data-es="Quitar Markdown" data-pt-br="Remover Markdown" data-de="Markdown entfernen" data-fr="Supprimer le Markdown" data-ru="Удаление Markdown" data-uk="Видалення Markdown">マークダウン除去</h3>
+        <div class="shot"><video src="images/WEBM/feat-markdown.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="貼り付けたテキストのMarkdown記法を除去できます。" data-en="Strip Markdown syntax from pasted text." data-zh="可去除粘贴文本中的 Markdown 语法。" data-zh-tw="可移除貼上文字中的 Markdown 語法。" data-ko="붙여넣은 텍스트의 마크다운 문법을 제거할 수 있습니다." data-es="Elimina la sintaxis Markdown del texto pegado." data-pt-br="Remova a sintaxe Markdown do texto colado." data-de="Entferne Markdown-Syntax aus eingefügtem Text." data-fr="Supprimez la syntaxe Markdown du texte collé." data-ru="Убирайте разметку Markdown из вставленного текста." data-uk="Прибирайте розмітку Markdown із вставленого тексту.">貼り付けたテキストのMarkdown記法を除去できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="タイムスタンプ" data-en="Timestamp" data-zh="时间戳" data-zh-tw="時間戳記" data-ko="타임스탬프" data-es="Marca de tiempo" data-pt-br="Carimbo de data/hora" data-de="Zeitstempel" data-fr="Horodatage" data-ru="Отметка времени" data-uk="Мітка часу">タイムスタンプ</h3>
+        <div class="shot"><video src="images/WEBM/feat-reorder.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="日時を、ワンクリックで挿入できます。" data-en="Insert the date and time with one click." data-zh="一键插入日期和时间。" data-zh-tw="一鍵插入日期與時間。" data-ko="날짜와 시간을 한 번의 클릭으로 삽입할 수 있습니다." data-es="Inserta la fecha y la hora con un clic." data-pt-br="Insira a data e a hora com um clique." data-de="Füge Datum und Uhrzeit mit einem Klick ein." data-fr="Insérez la date et l’heure d’un clic." data-ru="Вставляйте дату и время одним кликом." data-uk="Вставляйте дату й час одним кліком.">日時を、ワンクリックで挿入できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="ダブルクリックで単語選択" data-en="Double-click Select" data-zh="双击选择单词" data-zh-tw="雙擊選取單字" data-ko="더블클릭 단어 선택" data-es="Selección con doble clic" data-pt-br="Seleção com duplo clique" data-de="Doppelklick-Auswahl" data-fr="Sélection par double-clic" data-ru="Выбор двойным щелчком" data-uk="Вибір подвійним кліком">ダブルクリックで単語選択</h3>
+        <div class="shot"><video src="images/WEBM/word-select.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="ダブルクリックで単語、トリプルクリックで行を選択できます。" data-en="Double-click to select a word, triple-click to select a line." data-zh="双击选择单词，三击选择整行。" data-zh-tw="雙擊選取單字，三擊選取整行。" data-ko="더블클릭으로 단어, 트리플클릭으로 행을 선택할 수 있습니다." data-es="Doble clic para seleccionar una palabra; triple clic, una línea." data-pt-br="Duplo clique seleciona uma palavra; triplo clique, uma linha." data-de="Doppelklick wählt ein Wort, Dreifachklick eine Zeile." data-fr="Double-clic pour un mot, triple-clic pour une ligne." data-ru="Двойной щелчок выделяет слово, тройной — строку." data-uk="Подвійний клік виділяє слово, потрійний — рядок.">ダブルクリックで単語、トリプルクリックで行を選択できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="画面幅で折り返す" data-en="Wrap to Screen" data-zh="按屏幕宽度换行" data-zh-tw="依螢幕寬度換行" data-ko="화면 너비로 줄바꿈" data-es="Ajustar a la pantalla" data-pt-br="Quebrar na tela" data-de="Am Bildschirm umbrechen" data-fr="Retour selon l'écran" data-ru="Перенос по экрану" data-uk="Перенесення за екраном">画面幅で折り返す</h3>
+        <div class="shot"><video src="images/WEBM/wrap-to-screen-width.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="テキストを画面の幅に合わせて折り返せます。" data-en="Wrap text to fit the current screen width." data-zh="让文本按当前屏幕宽度换行。" data-zh-tw="讓文字依目前螢幕寬度換行。" data-ko="텍스트를 화면 너비에 맞춰 줄바꿈할 수 있습니다." data-es="Ajusta el texto al ancho de la pantalla actual." data-pt-br="Quebre o texto conforme a largura da tela." data-de="Text an die aktuelle Bildschirmbreite umbrechen." data-fr="Renvoyez le texte à la largeur de l'écran." data-ru="Переносите текст по ширине экрана." data-uk="Переносьте текст за шириною екрана.">テキストを画面の幅に合わせて折り返せます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="3種類のリンク機能" data-en="Three Link Features" data-zh="三种链接功能" data-zh-tw="三種連結功能" data-ko="3종류의 링크 기능" data-es="Tres funciones de enlace" data-pt-br="Três funções de link" data-de="Drei Link-Funktionen" data-fr="Trois fonctions de lien" data-ru="Три функции ссылок" data-uk="Три функції посилань">3種類のリンク機能</h3>
+        <div class="shot"><video src="images/WEBM/link-features.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="カードをフォルダー・URL・ボードへのリンクにできます。" data-en="Turn a card into a folder, URL, or board link." data-zh="可将卡片变为文件夹、URL 或面板链接。" data-zh-tw="可將卡片變為資料夾、URL 或面板連結。" data-ko="카드를 폴더・URL・보드 링크로 만들 수 있습니다." data-es="Convierte una tarjeta en enlace de carpeta, URL o tablero." data-pt-br="Transforme um cartão em link de pasta, URL ou quadro." data-de="Mache eine Karte zum Ordner-, URL- oder Board-Link." data-fr="Transformez une carte en lien vers un dossier, une URL ou un tableau." data-ru="Превратите карточку в ссылку на папку, URL или доску." data-uk="Перетворіть картку на посилання на теку, URL або дошку.">カードをフォルダー・URL・ボードへのリンクにできます。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-cat">
+    <h2 class="showcase-title i18n" data-ja="画像・メディア" data-en="Images & Media" data-zh="图像与媒体" data-zh-tw="圖像與媒體" data-ko="이미지·미디어" data-es="Imágenes y multimedia" data-pt-br="Imagens e mídia" data-de="Bilder & Medien" data-fr="Images et médias" data-ru="Изображения и медиа" data-uk="Зображення та медіа">画像・メディア</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="素材ウィンドウ" data-en="Asset Window" data-zh="素材窗口" data-zh-tw="素材視窗" data-ko="소재 창" data-es="Ventana de recursos" data-pt-br="Janela de recursos" data-de="Material-Fenster" data-fr="Fenêtre de ressources" data-ru="Окно ресурсов" data-uk="Вікно ресурсів">素材ウィンドウ</h3>
+        <div class="shot"><video src="images/WEBM/material-window.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="よく使う素材をウィンドウにまとめて、すぐ呼び出せます。" data-en="Keep frequently used assets in a window for quick access." data-zh="将常用素材集中在窗口中，随时快速调用。" data-zh-tw="將常用素材集中在視窗中，隨時快速呼叫。" data-ko="자주 쓰는 소재를 창에 모아 바로 불러올 수 있습니다." data-es="Reúne los recursos que más usas en una ventana para acceder rápido." data-pt-br="Reúna os recursos mais usados em uma janela para acesso rápido." data-de="Sammle häufig genutzte Assets in einem Fenster für schnellen Zugriff." data-fr="Regroupez vos ressources fréquentes dans une fenêtre pour un accès rapide." data-ru="Держите часто используемые ресурсы в окне для быстрого доступа." data-uk="Тримайте часто використовувані ресурси у вікні для швидкого доступу.">よく使う素材をウィンドウにまとめて、すぐ呼び出せます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="GIFアニメ対応" data-en="Animated GIFs" data-zh="支持 GIF 动画" data-zh-tw="支援 GIF 動畫" data-ko="GIF 애니메이션 지원" data-es="GIF animados" data-pt-br="GIFs animados" data-de="Animierte GIFs" data-fr="GIF animés" data-ru="Анимированные GIF" data-uk="Анімовані GIF">GIFアニメ対応</h3>
+        <div class="shot"><video src="images/WEBM/feat-gif-anime.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="貼り付けたGIFを、ボード上でそのまま再生できます。" data-en="Play pasted GIFs right on the board." data-zh="粘贴的 GIF 可直接在画板上播放。" data-zh-tw="貼上的 GIF 可直接在畫板上播放。" data-ko="붙여넣은 GIF를 보드 위에서 그대로 재생할 수 있습니다." data-es="Reproduce los GIF pegados directamente en el lienzo." data-pt-br="Reproduza os GIFs colados diretamente no quadro." data-de="Spiele eingefügte GIFs direkt auf dem Board ab." data-fr="Lisez les GIF collés directement sur le tableau." data-ru="Воспроизводите вставленные GIF прямо на доске." data-uk="Відтворюйте вставлені GIF прямо на дошці.">貼り付けたGIFを、ボード上でそのまま再生できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="エクスポート" data-en="Export" data-zh="导出" data-zh-tw="匯出" data-ko="내보내기" data-es="Exportar" data-pt-br="Exportar" data-de="Export" data-fr="Exporter" data-ru="Экспорт" data-uk="Експорт">エクスポート</h3>
+        <div class="shot"><video src="images/WEBM/5_export.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="完成したボードを画像やテキストとして書き出せます。" data-en="Export a finished board as an image or text." data-zh="可将完成的画板导出为图像或文本。" data-zh-tw="可將完成的畫板匯出為圖像或文字。" data-ko="완성한 보드를 이미지나 텍스트로 내보낼 수 있습니다." data-es="Exporta un lienzo terminado como imagen o texto." data-pt-br="Exporte um quadro pronto como imagem ou texto." data-de="Exportiere ein fertiges Board als Bild oder Text." data-fr="Exportez un tableau terminé en image ou en texte." data-ru="Экспортируйте готовую доску как изображение или текст." data-uk="Експортуйте готову дошку як зображення або текст.">完成したボードを画像やテキストとして書き出せます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="読み込み画像自動リサイズ" data-en="Auto-Resize on Import" data-zh="导入图像自动缩放" data-zh-tw="匯入圖像自動縮放" data-ko="가져온 이미지 자동 리사이즈" data-es="Autoajuste al importar" data-pt-br="Redimensionar ao importar" data-de="Auto-Skalierung beim Import" data-fr="Redimensionnement à l’import" data-ru="Авторазмер при импорте" data-uk="Автозмінення розміру при імпорті">読み込み画像自動リサイズ</h3>
+        <div class="shot"><video src="images/WEBM/auto-resize-import.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="取り込んだ画像を、上限サイズ内へ自動でリサイズします。" data-en="Automatically resize imported images within a size limit." data-zh="导入的图像会自动缩放到上限尺寸内。" data-zh-tw="匯入的圖像會自動縮放到上限尺寸內。" data-ko="가져온 이미지를 상한 크기 안으로 자동 리사이즈합니다." data-es="Redimensiona automáticamente las imágenes importadas dentro de un tamaño máximo." data-pt-br="Redimensiona automaticamente as imagens importadas dentro de um tamanho máximo." data-de="Skaliert importierte Bilder automatisch auf eine Maximalgröße." data-fr="Redimensionne automatiquement les images importées dans une taille maximale." data-ru="Автоматически уменьшает импортированные изображения до заданного предела." data-uk="Автоматично зменшує імпортовані зображення до заданої межі.">取り込んだ画像を、上限サイズ内へ自動でリサイズします。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="画像の表示加工" data-en="Image Display Effects" data-zh="图像显示处理" data-zh-tw="圖像顯示處理" data-ko="이미지 표시 가공" data-es="Efectos de imagen" data-pt-br="Efeitos de imagem" data-de="Bilddarstellung anpassen" data-fr="Effets d’affichage d’image" data-ru="Обработка вида изображения" data-uk="Обробка вигляду зображення">画像の表示加工</h3>
+        <div class="shot"><video src="images/WEBM/feat-image-fx.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="配置した画像の表示を、上下反転・左右反転・グレースケールなどに変更できます。" data-en="Change how a placed image displays — flip vertically or horizontally, grayscale, and more." data-zh="可将已放置的图像显示改为上下翻转、左右翻转、灰度等。" data-zh-tw="可將已放置的圖像顯示改為上下翻轉、左右翻轉、灰階等。" data-ko="배치한 이미지의 표시를 상하 반전·좌우 반전·그레이스케일 등으로 바꿀 수 있습니다." data-es="Cambia cómo se muestra una imagen: voltear en vertical u horizontal, escala de grises y más." data-pt-br="Mude como uma imagem aparece: inverter na vertical ou horizontal, escala de cinza e mais." data-de="Ändere die Darstellung eines platzierten Bildes – vertikal/horizontal spiegeln, Graustufen und mehr." data-fr="Modifiez l’affichage d’une image placée : miroir vertical ou horizontal, niveaux de gris, etc." data-ru="Меняйте вид размещённого изображения: отражение по вертикали/горизонтали, оттенки серого и другое." data-uk="Змінюйте вигляд розміщеного зображення: віддзеркалення по вертикалі/горизонталі, відтінки сірого та інше.">配置した画像の表示を、上下反転・左右反転・グレースケールなどに変更できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="全画像の最適化" data-en="Optimize All Images" data-zh="优化全部图像" data-zh-tw="最佳化全部圖像" data-ko="전체 이미지 최적화" data-es="Optimizar todas las imágenes" data-pt-br="Otimizar todas as imagens" data-de="Alle Bilder optimieren" data-fr="Optimiser toutes les images" data-ru="Оптимизация всех изображений" data-uk="Оптимізація всіх зображень">全画像の最適化</h3>
+        <div class="shot"><video src="images/WEBM/feat-optimize.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="ボード内の画像をまとめて最適化します。" data-en="Optimize all images on the board at once." data-zh="一次性优化画板内的所有图像。" data-zh-tw="一次最佳化畫板內的所有圖像。" data-ko="보드 내 이미지를 한꺼번에 최적화합니다." data-es="Optimiza de una vez todas las imágenes del lienzo." data-pt-br="Otimize de uma vez todas as imagens do quadro." data-de="Optimiere alle Bilder auf dem Board auf einmal." data-fr="Optimisez toutes les images du tableau d’un coup." data-ru="Оптимизируйте все изображения на доске сразу." data-uk="Оптимізуйте всі зображення на дошці одразу.">ボード内の画像をまとめて最適化します。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-cat">
+    <h2 class="showcase-title i18n" data-ja="配置と整理" data-en="Layout & Organization" data-zh="排布与整理" data-zh-tw="排佈與整理" data-ko="배치와 정리" data-es="Disposición y organización" data-pt-br="Disposição e organização" data-de="Anordnung & Organisation" data-fr="Disposition et organisation" data-ru="Размещение и упорядочивание" data-uk="Розміщення та впорядкування">配置と整理</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="自動整列" data-en="Auto-Align" data-zh="自动对齐" data-zh-tw="自動對齊" data-ko="자동 정렬" data-es="Autoalinear" data-pt-br="Alinhar automaticamente" data-de="Auto-Ausrichten" data-fr="Alignement auto" data-ru="Автовыравнивание" data-uk="Автовирівнювання">自動整列</h3>
+        <div class="shot"><video src="images/WEBM/auto-align.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="選択した要素を高さを揃えて自動配置します。左上詰めにも対応しています。" data-en="Auto-arrange selected items at a uniform height. Top-left packing is also supported." data-zh="将所选元素按统一高度自动排列，也支持向左上对齐。" data-zh-tw="將所選元素按統一高度自動排列，也支援向左上對齊。" data-ko="선택한 요소를 높이를 맞춰 자동 배치합니다. 좌상단 정렬도 지원합니다." data-es="Organiza los elementos seleccionados a una altura uniforme. También admite alineación arriba a la izquierda." data-pt-br="Organiza os itens selecionados com altura uniforme. Também há alinhamento no canto superior esquerdo." data-de="Ordnet ausgewählte Elemente auf gleicher Höhe an. Auch Ausrichtung oben links wird unterstützt." data-fr="Dispose automatiquement les éléments sélectionnés à hauteur uniforme. Alignement en haut à gauche pris en charge." data-ru="Автоматически выравнивает выбранные элементы по высоте. Есть и упаковка к верхнему левому углу." data-uk="Автоматично вирівнює вибрані елементи за висотою. Є й упаковка до верхнього лівого кута.">選択した要素を高さを揃えて自動配置します。左上詰めにも対応しています。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="グループ化機能" data-en="Grouping" data-zh="分组功能" data-zh-tw="群組功能" data-ko="그룹화" data-es="Agrupar" data-pt-br="Agrupar" data-de="Gruppieren" data-fr="Regroupement" data-ru="Группировка" data-uk="Групування">グループ化機能</h3>
+        <div class="shot"><video src="images/WEBM/group-feature.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="複数の要素をまとめて、ひとかたまりとして移動・管理できます。" data-en="Bundle multiple items to move and manage them as one." data-zh="将多个元素合为一组，作为整体移动与管理。" data-zh-tw="將多個元素合為一組，作為整體移動與管理。" data-ko="여러 요소를 묶어 하나의 덩어리로 이동·관리할 수 있습니다." data-es="Agrupa varios elementos para moverlos y gestionarlos como uno." data-pt-br="Agrupe vários itens para mover e gerenciar como um só." data-de="Fasse mehrere Elemente zusammen, um sie als Einheit zu bewegen und zu verwalten." data-fr="Regroupez plusieurs éléments pour les déplacer et les gérer comme un seul." data-ru="Объединяйте несколько элементов, чтобы перемещать и управлять ими как одним." data-uk="Об’єднуйте кілька елементів, щоб переміщувати та керувати ними як одним цілим.">複数の要素をまとめて、ひとかたまりとして移動・管理できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="接続線" data-en="Connectors" data-zh="连接线" data-zh-tw="連接線" data-ko="연결선" data-es="Conectores" data-pt-br="Conectores" data-de="Verbindungslinien" data-fr="Connecteurs" data-ru="Соединительные линии" data-uk="З’єднувальні лінії">接続線</h3>
+        <div class="shot"><video src="images/WEBM/connection-color.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="要素どうしを線で結べます。色と太さも変更できます。" data-en="Link items with lines. Color and thickness are adjustable." data-zh="可用线连接元素，颜色和粗细均可更改。" data-zh-tw="可用線連接元素，顏色與粗細皆可更改。" data-ko="요소끼리 선으로 연결할 수 있습니다. 색과 굵기도 변경할 수 있습니다." data-es="Conecta elementos con líneas. El color y el grosor son ajustables." data-pt-br="Conecte itens com linhas. Cor e espessura são ajustáveis." data-de="Verbinde Elemente mit Linien. Farbe und Dicke sind anpassbar." data-fr="Reliez les éléments par des lignes. Couleur et épaisseur réglables." data-ru="Соединяйте элементы линиями. Цвет и толщину можно менять." data-uk="З’єднуйте елементи лініями. Колір і товщину можна змінювати.">要素どうしを線で結べます。色と太さも変更できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="ガイド機能" data-en="Guides" data-zh="参考线功能" data-zh-tw="輔助線功能" data-ko="가이드" data-es="Guías" data-pt-br="Guias" data-de="Hilfslinien" data-fr="Repères" data-ru="Направляющие" data-uk="Напрямні">ガイド機能</h3>
+        <div class="shot"><video src="images/WEBM/free-guide.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="ガイド線に沿わせて、要素をきれいに分類できます。" data-en="Snap items to guide lines to sort them neatly." data-zh="让元素沿参考线对齐，整齐地分类。" data-zh-tw="讓元素沿輔助線對齊，整齊地分類。" data-ko="가이드 선에 맞춰 요소를 깔끔하게 분류할 수 있습니다." data-es="Alinea los elementos a las guías para clasificarlos con orden." data-pt-br="Alinhe os itens às guias para classificá-los com ordem." data-de="Richte Elemente an Hilfslinien aus, um sie ordentlich zu sortieren." data-fr="Alignez les éléments sur les repères pour les classer proprement." data-ru="Выравнивайте элементы по направляющим для аккуратной сортировки." data-uk="Вирівнюйте елементи за напрямними для акуратного сортування.">ガイド線に沿わせて、要素をきれいに分類できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="印刷ガイド機能" data-en="Print Guides" data-zh="打印参考线" data-zh-tw="列印輔助線" data-ko="인쇄 가이드" data-es="Guías de impresión" data-pt-br="Guias de impressão" data-de="Druck-Hilfslinien" data-fr="Repères d’impression" data-ru="Направляющие печати" data-uk="Напрямні друку">印刷ガイド機能</h3>
+        <div class="shot"><video src="images/WEBM/guide.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="印刷範囲のガイドに合わせてレイアウトできます。" data-en="Lay things out along print-area guides." data-zh="可按打印范围的参考线进行排版。" data-zh-tw="可依列印範圍的輔助線進行排版。" data-ko="인쇄 범위 가이드에 맞춰 레이아웃할 수 있습니다." data-es="Organiza el diseño según las guías del área de impresión." data-pt-br="Faça o layout de acordo com as guias da área de impressão." data-de="Gestalte das Layout entlang der Druckbereich-Hilfslinien." data-fr="Mettez en page selon les repères de la zone d’impression." data-ru="Компонуйте по направляющим области печати." data-uk="Компонуйте за напрямними області друку.">印刷範囲のガイドに合わせてレイアウトできます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="連番・並び替え機能" data-en="Numbering & Sorting" data-zh="编号与排序" data-zh-tw="編號與排序" data-ko="번호 매기기·정렬" data-es="Numeración y orden" data-pt-br="Numeração e ordenação" data-de="Nummerierung & Sortierung" data-fr="Numérotation et tri" data-ru="Нумерация и сортировка" data-uk="Нумерація та сортування">連番・並び替え機能</h3>
+        <div class="shot"><video src="images/WEBM/feat-timestamp.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="要素の連番付けや並び替えができます。ボードの番号の振り直しにも対応しています。" data-en="Number and reorder items. Renumbering boards is also supported." data-zh="可为元素编号并重新排序，也支持重新为画板编号。" data-zh-tw="可為元素編號並重新排序，也支援重新為畫板編號。" data-ko="요소에 번호를 매기고 순서를 바꿀 수 있습니다. 보드 번호 다시 매기기도 지원합니다." data-es="Numera y reordena elementos. También admite renumerar los lienzos." data-pt-br="Numere e reordene itens. Também há renumeração dos quadros." data-de="Nummeriere und sortiere Elemente. Auch das Neunummerieren von Boards wird unterstützt." data-fr="Numérotez et réorganisez les éléments. Renumérotation des tableaux prise en charge." data-ru="Нумеруйте и меняйте порядок элементов. Есть и перенумерация досок." data-uk="Нумеруйте та змінюйте порядок елементів. Є й перенумерація дощок.">要素の連番付けや並び替えができます。ボードの番号の振り直しにも対応しています。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-cat">
+    <h2 class="showcase-title i18n" data-ja="表示とファイル" data-en="View & Files" data-zh="显示与文件" data-zh-tw="顯示與檔案" data-ko="표시와 파일" data-es="Vista y archivos" data-pt-br="Visualização e arquivos" data-de="Ansicht & Dateien" data-fr="Affichage et fichiers" data-ru="Отображение и файлы" data-uk="Перегляд і файли">表示とファイル</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="集中モード" data-en="Focus Mode" data-zh="专注模式" data-zh-tw="專注模式" data-ko="집중 모드" data-es="Modo enfoque" data-pt-br="Modo foco" data-de="Fokusmodus" data-fr="Mode concentration" data-ru="Режим фокуса" data-uk="Режим фокуса">集中モード</h3>
+        <div class="shot"><video src="images/WEBM/focus-mode.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="対象以外をそっと沈めて、目の前の作業に集中できます。" data-en="Gently dim everything else so you can focus on the task at hand." data-zh="轻轻淡化其他内容，让你专注于眼前的工作。" data-zh-tw="輕輕淡化其他內容，讓你專注於眼前的工作。" data-ko="대상 외의 것을 살며시 가라앉혀 눈앞의 작업에 집중할 수 있습니다." data-es="Atenúa suavemente lo demás para que te concentres en lo que tienes delante." data-pt-br="Escurece suavemente o resto para você focar no que está à frente." data-de="Blendet alles andere sanft ab, damit du dich auf die Aufgabe konzentrierst." data-fr="Estompe doucement le reste pour vous concentrer sur la tâche en cours." data-ru="Мягко приглушает всё лишнее, чтобы сосредоточиться на текущей задаче." data-uk="М’яко притлумлює все зайве, щоб зосередитися на поточному завданні.">対象以外をそっと沈めて、目の前の作業に集中できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="状況に応じて変わるズーム機能" data-en="Context-Aware Zoom" data-zh="情境自适应缩放" data-zh-tw="情境自適應縮放" data-ko="상황별 줌" data-es="Zoom según contexto" data-pt-br="Zoom conforme o contexto" data-de="Kontextabhängiger Zoom" data-fr="Zoom contextuel" data-ru="Контекстный зум" data-uk="Контекстний зум">状況に応じて変わるズーム機能</h3>
+        <div class="shot"><video src="images/WEBM/zoom-behavior.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="状況に応じてズームの挙動が切り替わります。" data-en="Zoom behavior changes to match the situation." data-zh="缩放的行为会随情境切换。" data-zh-tw="縮放的行為會隨情境切換。" data-ko="상황에 따라 줌의 동작이 바뀝니다." data-es="El comportamiento del zoom cambia según la situación." data-pt-br="O comportamento do zoom muda conforme a situação." data-de="Das Zoom-Verhalten passt sich der Situation an." data-fr="Le comportement du zoom s’adapte à la situation." data-ru="Поведение зума меняется в зависимости от ситуации." data-uk="Поведінка зуму змінюється залежно від ситуації.">状況に応じてズームの挙動が切り替わります。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="全てのボードを検索" data-en="Search All Boards" data-zh="搜索全部画板" data-zh-tw="搜尋全部畫板" data-ko="모든 보드 검색" data-es="Buscar en todos los lienzos" data-pt-br="Pesquisar em todos os quadros" data-de="Alle Boards durchsuchen" data-fr="Rechercher dans tous les tableaux" data-ru="Поиск по всем доскам" data-uk="Пошук по всіх дошках">全てのボードを検索</h3>
+        <div class="shot"><video src="images/WEBM/global-search.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="どのボードの内容も、まとめて横断検索できます。" data-en="Search across the contents of every board at once." data-zh="可跨所有画板的内容一并搜索。" data-zh-tw="可跨所有畫板的內容一併搜尋。" data-ko="어느 보드의 내용이든 한꺼번에 통합 검색할 수 있습니다." data-es="Busca de una vez en el contenido de todos los lienzos." data-pt-br="Pesquise de uma vez no conteúdo de todos os quadros." data-de="Durchsuche die Inhalte aller Boards auf einmal." data-fr="Recherchez dans le contenu de tous les tableaux d’un coup." data-ru="Ищите по содержимому всех досок сразу." data-uk="Шукайте у вмісті всіх дошок одразу.">どのボードの内容も、まとめて横断検索できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="ファイルビュー" data-en="File View" data-zh="文件视图" data-zh-tw="檔案檢視" data-ko="파일 뷰" data-es="Vista de archivos" data-pt-br="Visão de arquivos" data-de="Dateiansicht" data-fr="Vue des fichiers" data-ru="Просмотр файлов" data-uk="Перегляд файлів">ファイルビュー</h3>
+        <div class="shot"><video src="images/WEBM/fileview.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="ファイルを一覧で見渡して開けます。" data-en="Browse files at a glance and open them." data-zh="以列表一览文件并打开。" data-zh-tw="以清單一覽檔案並開啟。" data-ko="파일을 목록으로 한눈에 보고 열 수 있습니다." data-es="Ve los archivos de un vistazo y ábrelos." data-pt-br="Veja os arquivos num relance e abra-os." data-de="Überblicke Dateien in der Liste und öffne sie." data-fr="Parcourez les fichiers d’un coup d’œil et ouvrez-les." data-ru="Просматривайте файлы списком и открывайте их." data-uk="Переглядайте файли списком і відкривайте їх.">ファイルを一覧で見渡して開けます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="最近使ったファイル" data-en="Recent Files" data-zh="最近使用的文件" data-zh-tw="最近使用的檔案" data-ko="최근 파일" data-es="Archivos recientes" data-pt-br="Arquivos recentes" data-de="Zuletzt verwendete Dateien" data-fr="Fichiers récents" data-ru="Недавние файлы" data-uk="Останні файли">最近使ったファイル</h3>
+        <div class="shot"><video src="images/WEBM/recent-files.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="直近に開いたファイルからすぐ再開できます。" data-en="Pick up right away from your recently opened files." data-zh="从最近打开的文件即可快速继续。" data-zh-tw="從最近開啟的檔案即可快速繼續。" data-ko="최근에 연 파일에서 바로 이어서 작업할 수 있습니다." data-es="Retoma al instante desde tus archivos abiertos recientemente." data-pt-br="Retome na hora a partir dos arquivos abertos recentemente." data-de="Mach direkt mit deinen zuletzt geöffneten Dateien weiter." data-fr="Reprenez aussitôt depuis vos fichiers récemment ouverts." data-ru="Продолжайте сразу с недавно открытых файлов." data-uk="Продовжуйте одразу з нещодавно відкритих файлів.">直近に開いたファイルからすぐ再開できます。</p>
+      </div>
+      <div class="feat-card">
+        <h3 class="i18n" data-ja="UIサイズ" data-en="UI Size" data-zh="界面大小" data-zh-tw="介面大小" data-ko="UI 크기" data-es="Tamaño de interfaz" data-pt-br="Tamanho da interface" data-de="UI-Größe" data-fr="Taille de l’interface" data-ru="Размер интерфейса" data-uk="Розмір інтерфейсу">UIサイズ</h3>
+        <div class="shot"><video src="images/WEBM/feat-uisize.webm" loop muted playsinline preload="none"></video></div>
+        <p class="i18n" data-ja="UIの大きさをクイックに変更できます。" data-en="Quickly change the size of the UI." data-zh="可快速更改界面大小。" data-zh-tw="可快速更改介面大小。" data-ko="UI 크기를 빠르게 변경할 수 있습니다." data-es="Cambia rápidamente el tamaño de la interfaz." data-pt-br="Mude rapidamente o tamanho da interface." data-de="Ändere die UI-Größe schnell." data-fr="Changez rapidement la taille de l’interface." data-ru="Быстро меняйте размер интерфейса." data-uk="Швидко змінюйте розмір інтерфейсу.">UIの大きさをクイックに変更できます。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-cat">
+    <h2 class="showcase-title i18n" data-ja="データ管理" data-en="Data Management" data-zh="数据管理" data-zh-tw="資料管理" data-ko="데이터 관리" data-es="Gestión de datos" data-pt-br="Gerenciamento de dados" data-de="Datenverwaltung" data-fr="Gestion des données" data-ru="Управление данными" data-uk="Керування даними">データ管理</h2>
+    <div class="groupset">
+      <div class="groupbox">
+        <div class="groupbox-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/></svg><span class="i18n" data-ja="書き出し" data-en="Export" data-zh="导出" data-zh-tw="匯出" data-ko="내보내기" data-es="Exportar" data-pt-br="Exportar" data-de="Export" data-fr="Exporter" data-ru="Экспорт" data-uk="Експорт">書き出し</span></div>
+        <ul>
+          <li><b class="i18n" data-ja="画像で書き出し" data-en="Export as Image" data-zh="导出为图像" data-zh-tw="匯出為圖像" data-ko="이미지로 내보내기" data-es="Exportar como imagen" data-pt-br="Exportar como imagem" data-de="Als Bild exportieren" data-fr="Exporter en image" data-ru="Экспорт в изображение" data-uk="Експорт у зображення">画像で書き出し</b><span class="i18n" data-ja="ボード全体を1枚のPNG画像として書き出します。" data-en="Export the entire board as a single PNG image." data-zh="将整个画板导出为一张 PNG 图像。" data-zh-tw="將整個畫板匯出為一張 PNG 圖像。" data-ko="보드 전체를 한 장의 PNG 이미지로 내보냅니다." data-es="Exporta todo el lienzo como una sola imagen PNG." data-pt-br="Exporta o quadro inteiro como uma única imagem PNG." data-de="Exportiert das gesamte Board als einzelnes PNG-Bild." data-fr="Exporte tout le tableau en une seule image PNG." data-ru="Экспортирует всю доску в одно изображение PNG." data-uk="Експортує всю дошку в одне зображення PNG.">ボード全体を1枚のPNG画像として書き出します。</span></li>
+          <li><b class="i18n" data-ja="テキストで書き出し" data-en="Export as Text" data-zh="导出为文本" data-zh-tw="匯出為文字" data-ko="텍스트로 내보내기" data-es="Exportar como texto" data-pt-br="Exportar como texto" data-de="Als Text exportieren" data-fr="Exporter en texte" data-ru="Экспорт в текст" data-uk="Експорт у текст">テキストで書き出し</b><span class="i18n" data-ja="ボード内のテキストを .txt として保存します。複数のタブを選択して1ファイルにまとめることもできます。" data-en="Save the board's text as a .txt file. You can also combine multiple tabs into one file." data-zh="将画板内的文本保存为 .txt。也可选择多个标签合并为一个文件。" data-zh-tw="將畫板內的文字儲存為 .txt。也可選擇多個分頁合併為一個檔案。" data-ko="보드 내 텍스트를 .txt로 저장합니다. 여러 탭을 선택해 한 파일로 합칠 수도 있습니다." data-es="Guarda el texto del lienzo como .txt. También puedes combinar varias pestañas en un solo archivo." data-pt-br="Salva o texto do quadro como .txt. Você também pode combinar várias abas em um único arquivo." data-de="Speichert den Text des Boards als .txt. Mehrere Tabs lassen sich auch in einer Datei zusammenfassen." data-fr="Enregistre le texte du tableau en .txt. Vous pouvez aussi regrouper plusieurs onglets dans un seul fichier." data-ru="Сохраняет текст доски в файл .txt. Можно объединить несколько вкладок в один файл." data-uk="Зберігає текст дошки у файл .txt. Можна об’єднати кілька вкладок в один файл.">ボード内のテキストを .txt として保存します。複数のタブを選択して1ファイルにまとめることもできます。</span></li>
+          <li><b class="i18n" data-ja="印刷ガイドで書き出し" data-en="Export with Print Guides" data-zh="按打印参考线导出" data-zh-tw="依列印輔助線匯出" data-ko="인쇄 가이드로 내보내기" data-es="Exportar con guías de impresión" data-pt-br="Exportar com guias de impressão" data-de="Mit Druck-Hilfslinien exportieren" data-fr="Exporter avec repères d’impression" data-ru="Экспорт по направляющим печати" data-uk="Експорт за напрямними друку">印刷ガイドで書き出し</b><span class="i18n" data-ja="A4（縦・横）のガイド枠ごとに、印刷形式に沿って画像を書き出します。" data-en="Export images per A4 guide frame (portrait/landscape), following the print format." data-zh="按 A4（纵向·横向）的参考线框，依打印格式导出图像。" data-zh-tw="依 A4（直向·橫向）的輔助線框，按列印格式匯出圖像。" data-ko="A4(세로·가로) 가이드 프레임별로 인쇄 형식에 맞춰 이미지를 내보냅니다." data-es="Exporta imágenes por cada marco guía A4 (vertical/horizontal), según el formato de impresión." data-pt-br="Exporta imagens por moldura-guia A4 (retrato/paisagem), conforme o formato de impressão." data-de="Exportiert Bilder je A4-Hilfsrahmen (Hoch-/Querformat) gemäß dem Druckformat." data-fr="Exporte des images par cadre-repère A4 (portrait/paysage), selon le format d’impression." data-ru="Экспортирует изображения по каждой рамке-направляющей A4 (книжная/альбомная) в формате для печати." data-uk="Експортує зображення за кожною рамкою-напрямною A4 (книжна/альбомна) у форматі для друку.">A4（縦・横）のガイド枠ごとに、印刷形式に沿って画像を書き出します。</span></li>
+          <li><b class="i18n" data-ja="ZIPで書き出し" data-en="Export as ZIP" data-zh="导出为 ZIP" data-zh-tw="匯出為 ZIP" data-ko="ZIP으로 내보내기" data-es="Exportar como ZIP" data-pt-br="Exportar como ZIP" data-de="Als ZIP exportieren" data-fr="Exporter en ZIP" data-ru="Экспорт в ZIP" data-uk="Експорт у ZIP">ZIPで書き出し</b><span class="i18n" data-ja="ボード全体を1つのZIPにまとめて書き出します。元画像はそのまま同梱し、各カードの位置や繋がりなどの情報もJSONで一緒に収めます。" data-en="Export the whole board into a single ZIP. Original images are included as-is, along with each card's position and connections in JSON." data-zh="将整个画板打包为一个 ZIP 导出。原图原样包含，各卡片的位置和连接等信息也以 JSON 一并收录。" data-zh-tw="將整個畫板打包為一個 ZIP 匯出。原圖原樣包含，各卡片的位置與連接等資訊也以 JSON 一併收錄。" data-ko="보드 전체를 하나의 ZIP으로 묶어 내보냅니다. 원본 이미지를 그대로 포함하고, 각 카드의 위치와 연결 정보도 JSON으로 함께 담습니다." data-es="Exporta todo el lienzo en un único ZIP. Incluye las imágenes originales tal cual, junto con la posición y las conexiones de cada tarjeta en JSON." data-pt-br="Exporta o quadro inteiro em um único ZIP. Inclui as imagens originais como estão, junto com a posição e as conexões de cada cartão em JSON." data-de="Exportiert das gesamte Board in eine einzige ZIP-Datei. Originalbilder werden unverändert beigelegt, samt Position und Verbindungen jeder Karte als JSON." data-fr="Exporte tout le tableau dans un seul ZIP. Les images d’origine sont incluses telles quelles, avec la position et les liens de chaque carte en JSON." data-ru="Экспортирует всю доску в один ZIP. Исходные изображения включаются без изменений, а положение и связи каждой карточки — в JSON." data-uk="Експортує всю дошку в один ZIP. Оригінальні зображення включаються без змін, а положення й зв’язки кожної картки — у JSON.">ボード全体を1つのZIPにまとめて書き出します。元画像はそのまま同梱し、各カードの位置や繋がりなどの情報もJSONで一緒に収めます。</span></li>
+        </ul>
+      </div>
+      <div class="groupbox">
+        <div class="groupbox-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8"/><path d="M8 21v-6h8v6"/></svg><span class="i18n" data-ja="保存" data-en="Save" data-zh="保存" data-zh-tw="儲存" data-ko="저장" data-es="Guardar" data-pt-br="Salvar" data-de="Speichern" data-fr="Enregistrer" data-ru="Сохранение" data-uk="Збереження">保存</span></div>
+        <ul>
+          <li><b class="i18n" data-ja="保存機能" data-en="Save" data-zh="保存功能" data-zh-tw="儲存功能" data-ko="저장 기능" data-es="Guardar" data-pt-br="Salvar" data-de="Speichern" data-fr="Enregistrement" data-ru="Сохранение" data-uk="Збереження">保存機能</b><span class="i18n" data-ja="作成したデータを、.txv 形式の単一ファイルにまとめて保存します。" data-en="Save your work as a single file in the .txv format." data-zh="将创建的数据保存为 .txv 格式的单个文件。" data-zh-tw="將建立的資料儲存為 .txv 格式的單一檔案。" data-ko="작성한 데이터를 .txv 형식의 단일 파일로 저장합니다." data-es="Guarda lo que creas en un solo archivo con formato .txv." data-pt-br="Salva o que você cria em um único arquivo no formato .txv." data-de="Speichert deine Arbeit als einzelne Datei im .txv-Format." data-fr="Enregistre votre travail dans un seul fichier au format .txv." data-ru="Сохраняет созданные данные в один файл формата .txv." data-uk="Зберігає створені дані в один файл формату .txv.">作成したデータを、.txv 形式の単一ファイルにまとめて保存します。</span></li>
+          <li><b class="i18n" data-ja="手動保存" data-en="Manual Save" data-zh="手动保存" data-zh-tw="手動儲存" data-ko="수동 저장" data-es="Guardado manual" data-pt-br="Salvar manual" data-de="Manuelles Speichern" data-fr="Enregistrement manuel" data-ru="Ручное сохранение" data-uk="Ручне збереження">手動保存</b><span class="i18n" data-ja="Ctrl+S で上書き保存、Ctrl+Shift+S で別名保存ができます。" data-en="Ctrl+S to save, Ctrl+Shift+S to save as." data-zh="Ctrl+S 覆盖保存，Ctrl+Shift+S 另存为。" data-zh-tw="Ctrl+S 覆蓋儲存，Ctrl+Shift+S 另存新檔。" data-ko="Ctrl+S로 덮어쓰기 저장, Ctrl+Shift+S로 다른 이름으로 저장할 수 있습니다." data-es="Ctrl+S para guardar y Ctrl+Shift+S para guardar como." data-pt-br="Ctrl+S para salvar e Ctrl+Shift+S para salvar como." data-de="Strg+S zum Speichern, Strg+Umschalt+S zum Speichern unter." data-fr="Ctrl+S pour enregistrer, Ctrl+Maj+S pour enregistrer sous." data-ru="Ctrl+S — сохранить, Ctrl+Shift+S — сохранить как." data-uk="Ctrl+S — зберегти, Ctrl+Shift+S — зберегти як.">Ctrl+S で上書き保存、Ctrl+Shift+S で別名保存ができます。</span></li>
+          <li><b class="i18n" data-ja="自動保存" data-en="Auto-Save" data-zh="自动保存" data-zh-tw="自動儲存" data-ko="자동 저장" data-es="Autoguardado" data-pt-br="Salvamento automático" data-de="Automatisches Speichern" data-fr="Enregistrement auto" data-ru="Автосохранение" data-uk="Автозбереження">自動保存</b><span class="i18n" data-ja="設定した間隔（10秒〜90分）で、自動的に上書き保存します。" data-en="Automatically saves at your chosen interval (10 seconds to 90 minutes)." data-zh="按设定的间隔（10 秒～90 分钟）自动覆盖保存。" data-zh-tw="依設定的間隔（10 秒～90 分鐘）自動覆蓋儲存。" data-ko="설정한 간격(10초~90분)으로 자동으로 덮어쓰기 저장합니다." data-es="Guarda automáticamente en el intervalo que elijas (de 10 segundos a 90 minutos)." data-pt-br="Salva automaticamente no intervalo escolhido (de 10 segundos a 90 minutos)." data-de="Speichert automatisch im gewählten Intervall (10 Sekunden bis 90 Minuten)." data-fr="Enregistre automatiquement à l’intervalle choisi (de 10 secondes à 90 minutes)." data-ru="Автоматически сохраняет с заданным интервалом (от 10 секунд до 90 минут)." data-uk="Автоматично зберігає із заданим інтервалом (від 10 секунд до 90 хвилин).">設定した間隔（10秒〜90分）で、自動的に上書き保存します。</span></li>
+          <li><b class="i18n" data-ja="タイムスタンプ保存" data-en="Timestamped Backup" data-zh="时间戳备份" data-zh-tw="時間戳記備份" data-ko="타임스탬프 백업" data-es="Copia con marca de tiempo" data-pt-br="Backup com data/hora" data-de="Zeitgestempeltes Backup" data-fr="Sauvegarde horodatée" data-ru="Копия с отметкой времени" data-uk="Копія з міткою часу">タイムスタンプ保存</b><span class="i18n" data-ja="保存時に日時付きのバックアップを自動で作成します。保持数は1〜50個の範囲で設定できます。" data-en="Automatically creates dated backups when saving. Keep between 1 and 50 of them." data-zh="保存时自动创建带日期时间的备份，保留数量可在 1～50 个之间设置。" data-zh-tw="儲存時自動建立含日期時間的備份，保留數量可在 1～50 個之間設定。" data-ko="저장 시 날짜·시간이 붙은 백업을 자동으로 만듭니다. 보관 개수는 1~50개 범위로 설정할 수 있습니다." data-es="Crea automáticamente copias con fecha al guardar. Conserva entre 1 y 50." data-pt-br="Cria automaticamente backups com data ao salvar. Mantenha de 1 a 50." data-de="Erstellt beim Speichern automatisch datierte Backups. 1 bis 50 lassen sich aufbewahren." data-fr="Crée automatiquement des sauvegardes datées à l’enregistrement. Conservez-en de 1 à 50." data-ru="При сохранении автоматически создаёт резервные копии с датой. Можно хранить от 1 до 50." data-uk="При збереженні автоматично створює резервні копії з датою. Можна зберігати від 1 до 50.">保存時に日時付きのバックアップを自動で作成します。保持数は1〜50個の範囲で設定できます。</span></li>
+        </ul>
+      </div>
+      <div class="groupbox">
+        <div class="groupbox-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="i18n" data-ja="その他" data-en="Other" data-zh="其他" data-zh-tw="其他" data-ko="기타" data-es="Otros" data-pt-br="Outros" data-de="Sonstiges" data-fr="Autres" data-ru="Прочее" data-uk="Інше">その他</span></div>
+        <ul>
+          <li><b class="i18n" data-ja="ボードの合成" data-en="Merge Boards" data-zh="合并画板" data-zh-tw="合併畫板" data-ko="보드 합성" data-es="Combinar lienzos" data-pt-br="Mesclar quadros" data-de="Boards zusammenführen" data-fr="Fusion de tableaux" data-ru="Объединение досок" data-uk="Об’єднання дощок">ボードの合成</b><span class="i18n" data-ja="複数のボードを1つのボードにまとめて統合できます。" data-en="Merge multiple boards into one." data-zh="可将多个画板合并整合为一个。" data-zh-tw="可將多個畫板合併整合為一個。" data-ko="여러 보드를 하나로 통합할 수 있습니다." data-es="Combina varios lienzos en uno." data-pt-br="Mescle vários quadros em um só." data-de="Führe mehrere Boards zu einem zusammen." data-fr="Fusionnez plusieurs tableaux en un seul." data-ru="Объединяйте несколько досок в одну." data-uk="Об’єднуйте кілька дощок в одну.">複数のボードを1つのボードにまとめて統合できます。</span></li>
+          <li><b class="i18n" data-ja="設定のバックアップ" data-en="Settings Backup" data-zh="设置备份" data-zh-tw="設定備份" data-ko="설정 백업" data-es="Copia de ajustes" data-pt-br="Backup de configurações" data-de="Einstellungs-Backup" data-fr="Sauvegarde des réglages" data-ru="Резервная копия настроек" data-uk="Резервна копія налаштувань">設定のバックアップ</b><span class="i18n" data-ja="カラー・フォント・ショートカットなどの設定を、ファイルに保存・復元できます。" data-en="Save and restore settings like colors, fonts, and shortcuts to a file." data-zh="可将颜色、字体、快捷键等设置保存到文件并恢复。" data-zh-tw="可將顏色、字型、快速鍵等設定儲存到檔案並還原。" data-ko="색상·글꼴·단축키 등의 설정을 파일로 저장·복원할 수 있습니다." data-es="Guarda y restaura ajustes como colores, fuentes y atajos en un archivo." data-pt-br="Salve e restaure configurações como cores, fontes e atalhos em um arquivo." data-de="Speichere und stelle Einstellungen wie Farben, Schriften und Kürzel als Datei wieder her." data-fr="Enregistrez et restaurez des réglages (couleurs, polices, raccourcis) dans un fichier." data-ru="Сохраняйте и восстанавливайте настройки — цвета, шрифты, горячие клавиши — в файл." data-uk="Зберігайте та відновлюйте налаштування — кольори, шрифти, гарячі клавіші — у файл.">カラー・フォント・ショートカットなどの設定を、ファイルに保存・復元できます。</span></li>
+          <li><b class="i18n" data-ja="ショートカット変更機能" data-en="Custom Shortcuts" data-zh="快捷键自定义" data-zh-tw="快速鍵自訂" data-ko="단축키 변경" data-es="Atajos personalizados" data-pt-br="Atalhos personalizados" data-de="Anpassbare Kürzel" data-fr="Raccourcis personnalisables" data-ru="Настройка горячих клавиш" data-uk="Налаштування гарячих клавіш">ショートカット変更機能</b><span class="i18n" data-ja="各操作のショートカットを自由に変更できます。キー入力を録画して設定することもできます。" data-en="Freely reassign shortcuts for each action. You can even record key presses to set them." data-zh="可自由更改各操作的快捷键，还能录制按键来进行设置。" data-zh-tw="可自由更改各操作的快速鍵，還能錄製按鍵來進行設定。" data-ko="각 동작의 단축키를 자유롭게 변경할 수 있습니다. 키 입력을 녹화해 설정할 수도 있습니다." data-es="Reasigna libremente los atajos de cada acción. Incluso puedes grabar las teclas para configurarlos." data-pt-br="Reatribua livremente os atalhos de cada ação. Você pode até gravar as teclas para defini-los." data-de="Weise Kürzel für jede Aktion frei neu zu. Du kannst Tasteneingaben sogar aufzeichnen, um sie festzulegen." data-fr="Réattribuez librement les raccourcis de chaque action. Vous pouvez même enregistrer les touches pour les définir." data-ru="Свободно переназначайте горячие клавиши для каждого действия. Их можно задать даже записью нажатий." data-uk="Вільно перепризначайте гарячі клавіші для кожної дії. Їх можна задати навіть записом натискань.">各操作のショートカットを自由に変更できます。キー入力を録画して設定することもできます。</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="platforms fade-in" id="platforms">
+  <h2><span class="i18n" data-ja="動作環境" data-en="System Requirements" data-zh="运行环境" data-zh-tw="執行環境" data-ko="시스템 요구 사항" data-es="Requisitos del sistema" data-pt-br="Requisitos do sistema" data-de="Systemvoraussetzungen" data-fr="Configuration requise" data-ru="Системные требования" data-uk="Системні вимоги">動作環境</span></h2>
+  <dl class="specs">
+    <div class="spec-row"><dt class="i18n" data-ja="対応OS" data-en="OS" data-zh="支持的操作系统" data-zh-tw="支援的作業系統" data-ko="지원 OS" data-es="Sistema operativo" data-pt-br="Sistema operacional" data-de="Betriebssystem" data-fr="Système" data-ru="ОС" data-uk="ОС">対応OS</dt><dd class="i18n" data-ja="Windows 11（64bit）／Mac・Linux 非対応" data-en="Windows 11 (64-bit) / Mac & Linux not supported" data-zh="Windows 11（64 位）／不支持 Mac、Linux" data-zh-tw="Windows 11（64 位元）／不支援 Mac、Linux" data-ko="Windows 11(64비트) / Mac·Linux 미지원" data-es="Windows 11 (64 bits) / Mac y Linux no compatibles" data-pt-br="Windows 11 (64 bits) / Mac e Linux não suportados" data-de="Windows 11 (64 Bit) / Mac und Linux nicht unterstützt" data-fr="Windows 11 (64 bits) / Mac et Linux non pris en charge" data-ru="Windows 11 (64-бит) / Mac и Linux не поддерживаются" data-uk="Windows 11 (64-біт) / Mac і Linux не підтримуються">Windows 11（64bit）／Mac・Linux 非対応</dd></div>
+    <div class="spec-row"><dt class="i18n" data-ja="ネット接続" data-en="Internet" data-zh="网络连接" data-zh-tw="網路連線" data-ko="인터넷 연결" data-es="Conexión a internet" data-pt-br="Conexão à internet" data-de="Internet" data-fr="Connexion Internet" data-ru="Интернет" data-uk="Інтернет">ネット接続</dt><dd class="i18n" data-ja="不要（インターネットに接続せずに利用できます）" data-en="Not required (works fully offline)" data-zh="不需要（无需联网即可使用）" data-zh-tw="不需要（無需連網即可使用）" data-ko="불필요(인터넷 없이 사용할 수 있습니다)" data-es="No es necesaria (funciona sin conexión)" data-pt-br="Não é necessária (funciona sem internet)" data-de="Nicht erforderlich (funktioniert offline)" data-fr="Non requise (fonctionne hors ligne)" data-ru="Не требуется (работает без интернета)" data-uk="Не потрібен (працює повністю офлайн)">不要（インターネットに接続せずに利用できます）</dd></div>
+    <div class="spec-row"><dt class="i18n" data-ja="ライセンス" data-en="License" data-zh="授权" data-zh-tw="授權" data-ko="라이선스" data-es="Licencia" data-pt-br="Licença" data-de="Lizenz" data-fr="Licence" data-ru="Лицензия" data-uk="Ліцензія">ライセンス</dt><dd class="i18n" data-ja="買い切り（サブスクではなく、一度の購入で使い続けられます）" data-en="One-time purchase (not a subscription; buy once, use forever)" data-zh="买断制（非订阅，一次购买即可长期使用）" data-zh-tw="買斷制（非訂閱，一次購買即可長期使用）" data-ko="한 번 구매(구독이 아니라 한 번 사면 계속 사용)" data-es="Pago único (no es suscripción; compra una vez y úsalo siempre)" data-pt-br="Compra única (não é assinatura; compre uma vez e use sempre)" data-de="Einmalkauf (kein Abo; einmal kaufen, dauerhaft nutzen)" data-fr="Achat unique (pas d’abonnement ; achetez une fois, utilisez toujours)" data-ru="Разовая покупка (не подписка; купите один раз и пользуйтесь всегда)" data-uk="Разова покупка (не підписка; купіть один раз і користуйтеся завжди)">買い切り（サブスクではなく、一度の購入で使い続けられます）</dd></div>
+    <div class="spec-row"><dt class="i18n" data-ja="対応言語" data-en="Languages" data-zh="支持语言" data-zh-tw="支援語言" data-ko="지원 언어" data-es="Idiomas" data-pt-br="Idiomas" data-de="Sprachen" data-fr="Langues" data-ru="Языки" data-uk="Мови">対応言語</dt><dd><details class="lang-acc"><summary class="i18n" data-ja="アプリのUI表示に29言語対応" data-en="App UI available in 29 languages" data-zh="应用界面支持 29 种语言" data-zh-tw="應用程式介面支援 29 種語言" data-ko="앱 UI가 29개 언어를 지원" data-es="Interfaz de la app en 29 idiomas" data-pt-br="Interface do app em 29 idiomas" data-de="App-Oberfläche in 29 Sprachen" data-fr="Interface de l’app en 29 langues" data-ru="Интерфейс приложения на 29 языках" data-uk="Інтерфейс застосунку 29 мовами">アプリのUI表示に29言語対応</summary>
+      <div class="lang-chips">
+        <span class="lang-chip">日本語</span><span class="lang-chip">English</span><span class="lang-chip">Français</span><span class="lang-chip">Italiano</span><span class="lang-chip">Deutsch</span><span class="lang-chip">Español (España)</span><span class="lang-chip">Español (Latinoamérica)</span><span class="lang-chip">Português (Brasil)</span><span class="lang-chip">Português (Portugal)</span><span class="lang-chip">Русский</span><span class="lang-chip">简体中文</span><span class="lang-chip">繁體中文</span><span class="lang-chip">한국어</span><span class="lang-chip">Polski</span><span class="lang-chip">Bahasa Indonesia</span><span class="lang-chip">Українська</span><span class="lang-chip">Nederlands</span><span class="lang-chip">Ελληνικά</span><span class="lang-chip">Svenska</span><span class="lang-chip">ไทย</span><span class="lang-chip">Čeština</span><span class="lang-chip">Dansk</span><span class="lang-chip">Türkçe</span><span class="lang-chip">Norsk</span><span class="lang-chip">Magyar</span><span class="lang-chip">Suomi</span><span class="lang-chip">Български</span><span class="lang-chip">Tiếng Việt</span><span class="lang-chip">Română</span>
+      </div>
+    </details></dd></div>
+    <div class="spec-row"><dt class="i18n" data-ja="保存形式" data-en="Save Format" data-zh="保存格式" data-zh-tw="儲存格式" data-ko="저장 형식" data-es="Formato de guardado" data-pt-br="Formato de salvamento" data-de="Speicherformat" data-fr="Format d’enregistrement" data-ru="Формат сохранения" data-uk="Формат збереження">保存形式</dt><dd class="i18n" data-ja=".txv 形式（テキストと画像を1つのファイルにまとめて保存）" data-en=".txv format (text and images saved together in one file)" data-zh=".txv 格式（将文本和图像合并保存到一个文件）" data-zh-tw=".txv 格式（將文字與圖像合併儲存到一個檔案）" data-ko=".txv 형식(텍스트와 이미지를 하나의 파일로 저장)" data-es="Formato .txv (texto e imágenes guardados juntos en un archivo)" data-pt-br="Formato .txv (texto e imagens salvos juntos em um arquivo)" data-de=".txv-Format (Text und Bilder in einer Datei gespeichert)" data-fr="Format .txv (texte et images enregistrés ensemble dans un fichier)" data-ru="Формат .txv (текст и изображения в одном файле)" data-uk="Формат .txv (текст і зображення в одному файлі)">.txv 形式（テキストと画像を1つのファイルにまとめて保存）</dd></div>
+    <div class="spec-row"><dt class="i18n" data-ja="対応ファイル形式" data-en="Supported File Types" data-zh="支持的文件格式" data-zh-tw="支援的檔案格式" data-ko="지원 파일 형식" data-es="Formatos de archivo" data-pt-br="Formatos de arquivo" data-de="Unterstützte Dateiformate" data-fr="Formats de fichier pris en charge" data-ru="Поддерживаемые форматы" data-uk="Підтримувані формати">対応ファイル形式</dt><dd><details class="lang-acc"><summary class="i18n" data-ja="読み込めるファイル形式" data-en="Importable file types" data-zh="可导入的文件格式" data-zh-tw="可匯入的檔案格式" data-ko="가져올 수 있는 파일 형식" data-es="Formatos que puedes importar" data-pt-br="Formatos que você pode importar" data-de="Importierbare Dateiformate" data-fr="Formats importables" data-ru="Форматы для импорта" data-uk="Формати для імпорту">読み込めるファイル形式</summary>
+      <div class="fmt-group">
+        <div class="fmt-label i18n" data-ja="テキスト系" data-en="Text" data-zh="文本类" data-zh-tw="文字類" data-ko="텍스트 계열" data-es="Texto" data-pt-br="Texto" data-de="Text" data-fr="Texte" data-ru="Текстовые" data-uk="Текстові">テキスト系</div>
+        <div class="lang-chips">
+          <span class="lang-chip">.txt</span><span class="lang-chip">.md</span><span class="lang-chip">.markdown</span><span class="lang-chip">.csv</span><span class="lang-chip">.tsv</span><span class="lang-chip">.log</span><span class="lang-chip">.json</span><span class="lang-chip">.xml</span><span class="lang-chip">.html</span><span class="lang-chip">.yaml</span><span class="lang-chip">.yml</span><span class="lang-chip">.ini</span><span class="lang-chip">.conf</span>
+        </div>
+        <p class="fmt-note i18n" data-ja="中身をプレーンテキストとして読み込み、テキストカードにします。" data-en="The contents are imported as plain text and turned into text cards." data-zh="将内容作为纯文本读取，转为文本卡片。" data-zh-tw="將內容作為純文字讀取，轉為文字卡片。" data-ko="내용을 일반 텍스트로 읽어 텍스트 카드로 만듭니다." data-es="El contenido se importa como texto plano y se convierte en tarjetas de texto." data-pt-br="O conteúdo é importado como texto simples e vira cartões de texto." data-de="Der Inhalt wird als reiner Text importiert und zu Textkarten." data-fr="Le contenu est importé en texte brut et transformé en cartes de texte." data-ru="Содержимое загружается как обычный текст и превращается в текстовые карточки." data-uk="Вміст завантажується як звичайний текст і перетворюється на текстові картки.">中身をプレーンテキストとして読み込み、テキストカードにします。</p>
+      </div>
+      <div class="fmt-group">
+        <div class="fmt-label i18n" data-ja="画像" data-en="Images" data-zh="图像" data-zh-tw="圖像" data-ko="이미지" data-es="Imágenes" data-pt-br="Imagens" data-de="Bilder" data-fr="Images" data-ru="Изображения" data-uk="Зображення">画像</div>
+        <div class="lang-chips">
+          <span class="lang-chip">.png</span><span class="lang-chip">.jpg</span><span class="lang-chip">.jpeg</span><span class="lang-chip">.gif</span><span class="lang-chip">.webp</span><span class="lang-chip">.svg</span><span class="lang-chip">.bmp</span><span class="lang-chip">.avif</span><span class="lang-chip">.heic</span>
+        </div>
+        <p class="fmt-note i18n" data-ja="OS が画像として扱う形式全般（image/* MIME）を、画像カードとして配置します。" data-en="Any format the OS treats as an image (image/* MIME) is placed as an image card." data-zh="操作系统视为图像的所有格式（image/* MIME）都会作为图像卡片放置。" data-zh-tw="作業系統視為圖像的所有格式（image/* MIME）都會作為圖像卡片放置。" data-ko="OS가 이미지로 취급하는 모든 형식(image/* MIME)을 이미지 카드로 배치합니다." data-es="Cualquier formato que el SO trate como imagen (MIME image/*) se coloca como tarjeta de imagen." data-pt-br="Qualquer formato que o SO trate como imagem (MIME image/*) é colocado como cartão de imagem." data-de="Jedes Format, das das Betriebssystem als Bild behandelt (image/*-MIME), wird als Bildkarte platziert." data-fr="Tout format que le système traite comme une image (MIME image/*) est placé en carte image." data-ru="Любой формат, который ОС считает изображением (MIME image/*), размещается как карточка-изображение." data-uk="Будь-який формат, який ОС вважає зображенням (MIME image/*), розміщується як картка-зображення.">OS が画像として扱う形式全般（image/* MIME）を、画像カードとして配置します。</p>
+      </div>
+    </details></dd></div>
+  </dl>
+</section>
+
+
+<section class="cta fade-in" id="buy">
+  <h2 class="i18n" data-ja="<span class='accent'>Textvas</span> を入手する" data-en="Get <span class='accent'>Textvas</span>" data-zh="获取 <span class='accent'>Textvas</span>" data-zh-tw="取得 <span class='accent'>Textvas</span>" data-ko="<span class='accent'>Textvas</span> 받기" data-es="Consigue <span class='accent'>Textvas</span>" data-pt-br="Obtenha o <span class='accent'>Textvas</span>" data-de="<span class='accent'>Textvas</span> holen" data-fr="Obtenir <span class='accent'>Textvas</span>" data-ru="Получить <span class='accent'>Textvas</span>" data-uk="Отримати <span class='accent'>Textvas</span>"><span class="accent">Textvas</span> を入手する</h2>
+  <p class="lead i18n" data-ja="以下のストアからご購入いただけます。" data-en="Available from the stores below." data-zh="可从以下商店购买。" data-zh-tw="可從以下商店購買。" data-ko="아래 스토어에서 구매할 수 있습니다." data-es="Disponible en las siguientes tiendas." data-pt-br="Disponível nas lojas abaixo." data-de="Erhältlich in den folgenden Stores." data-fr="Disponible sur les boutiques ci-dessous." data-ru="Доступно в магазинах ниже." data-uk="Доступно в магазинах нижче.">以下のストアからご購入いただけます。</p>
+  <div class="buy-btns">
+    <a class="buy-btn" href="https://typocraft.itch.io/textvas" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.62-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-7.945.053-8.87.133zm6.376 6.477a2.74 2.74 0 0 1-.468.602c-.5.49-1.19.795-1.947.795a2.786 2.786 0 0 1-1.95-.795c-.182-.178-.32-.37-.446-.59-.127.222-.303.412-.486.59a2.788 2.788 0 0 1-1.95.795c-.092 0-.187-.025-.264-.052-.107 1.113-.152 2.176-.168 2.95v.005l-.006 1.167c.02 2.334-.23 7.564 1.03 8.85 1.952.454 5.545.662 9.15.663 3.605 0 7.198-.21 9.15-.664 1.26-1.284 1.01-6.514 1.03-8.848l-.006-1.167v-.004c-.016-.775-.06-1.838-.168-2.95-.077.026-.172.052-.263.052a2.788 2.788 0 0 1-1.95-.795c-.184-.178-.36-.368-.486-.59-.127.22-.265.412-.447.59a2.786 2.786 0 0 1-1.95.794c-.76 0-1.446-.303-1.948-.793a2.74 2.74 0 0 1-.468-.602 2.738 2.738 0 0 1-.463.602 2.787 2.787 0 0 1-1.95.794h-.16a2.787 2.787 0 0 1-1.95-.793 2.738 2.738 0 0 1-.464-.602zm-2.004 2.59v.002c.795.002 1.5 0 2.373.953.687-.072 1.406-.108 2.125-.107.72 0 1.438.035 2.125.107.873-.953 1.578-.95 2.372-.953.376 0 1.876 0 2.92 2.934l1.123 4.028c.832 2.995-.266 3.068-1.636 3.07-2.03-.075-3.156-1.55-3.156-3.025-1.124.184-2.436.276-3.748.277-1.312 0-2.624-.093-3.748-.277 0 1.475-1.125 2.95-3.156 3.026-1.37-.004-2.468-.077-1.636-3.072l1.122-4.027c1.045-2.934 2.545-2.934 2.92-2.934zM12 12.714c-.002.002-2.14 1.964-2.523 2.662l1.4-.056v1.22c0 .056.56.033 1.123.007.562.026 1.124.05 1.124-.008v-1.22l1.4.055C14.138 14.677 12 12.713 12 12.713z"/></svg>
+      <span>itch.io</span>
+    </a>
+    <a class="buy-btn" href="https://store.steampowered.com/app/4671340/Textvas/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z"/></svg>
+      <span>Steam</span>
+    </a>
+  </div>
+  <p class="cta-trust i18n" data-ja="サブスクではなく、買い切りです。一度のご購入で使い続けられ、アップデートも無料です。" data-en="A one-time purchase, not a subscription. Buy once, use forever — updates included free." data-zh="买断制而非订阅。一次购买，长期使用，更新也免费。" data-zh-tw="買斷制而非訂閱。一次購買，長期使用，更新也免費。" data-ko="구독이 아닌 한 번 구매. 한 번 사면 계속 사용할 수 있고, 업데이트도 무료입니다." data-es="Pago único, no una suscripción. Compra una vez, úsalo para siempre y con actualizaciones gratuitas." data-pt-br="Compra única, não é assinatura. Compre uma vez, use para sempre — atualizações gratuitas." data-de="Einmalkauf statt Abo. Einmal kaufen, dauerhaft nutzen – Updates kostenlos." data-fr="Achat unique, pas un abonnement. Achetez une fois, utilisez toujours — mises à jour gratuites." data-ru="Разовая покупка, а не подписка. Купите один раз и пользуйтесь всегда — обновления бесплатны." data-uk="Разова покупка, а не підписка. Купіть один раз і користуйтеся завжди — оновлення безкоштовні.">サブスクではなく、買い切りです。一度のご購入で使い続けられ、アップデートも無料です。</p>
+</section>
+
+
+<div class="copyright">Copyright © 2026 typocraft. All rights reserved.</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}
+    });
+  },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+  document.querySelectorAll('.fade-in').forEach(function(el){obs.observe(el);});
+
+
+  var vobs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      var v=e.target;
+      if(e.isIntersecting){
+        if(!v.getAttribute('src') && v.dataset.vsrc){ v.setAttribute('src',v.dataset.vsrc); v.load(); }
+        if(v.preload!=='auto'){v.preload='auto';}
+        v.play().catch(function(){});
+      } else {
+        v.pause();
+        var s=v.getAttribute('src');
+        if(s){ v.dataset.vsrc=s; v.removeAttribute('src'); v.load(); }
+      }
+    });
+  },{threshold:0.01,rootMargin:'200px 0px 200px 0px'});
+  document.querySelectorAll('video').forEach(function(v){vobs.observe(v);});
+});
+
+
+var __jpPunct=/([、。！？・：；」』）】〕》〉])/g;
+var __jpJoshi=/(を|に|は|が|へ|と|で|も|や|の|から|まで|より|など|ため|ので|けど)(?=[ぁ-んァ-ヶ一-龠])/g;
+function jpBunsetsu(text){return text.replace(__jpPunct,'$1​').replace(__jpJoshi,'$1​');}
+function setLang(lang){
+  document.querySelectorAll('.lang-item').forEach(function(b){b.classList.toggle('active', b.dataset.lang===lang);});
+  var cur=document.querySelector('.lang-item[data-lang="'+lang+'"]');
+  var lbl=document.getElementById('lang-current-label');
+  if(cur&&lbl) lbl.textContent=cur.textContent.trim();
+  var tog=document.getElementById('lang-toggle');
+  var trg=document.getElementById('lang-trigger');
+  if(tog) tog.classList.remove('open');
+  if(trg) trg.setAttribute('aria-expanded','false');
+  document.documentElement.setAttribute('lang', lang);
+  var META={
+    ja:['Textvas — テキストと画像を自由に並べるノートアプリ','Textvasはクリエイターから一般ユーザーまで使える直感的なノートアプリです。'],
+    en:['Textvas — Arrange text and images freely','Textvas is an intuitive note app for everyone, from creators to everyday users.'],
+    zh:['Textvas — 自由排布文字与图像的笔记应用','Textvas 是一款从创作者到普通用户都能上手的直观笔记应用。'],
+    'zh-tw':['Textvas — 自由排佈文字與圖像的筆記應用程式','Textvas 是一款從創作者到一般使用者都能上手的直覺筆記應用程式。'],
+    ko:['Textvas — 텍스트와 이미지를 자유롭게 배치하는 노트 앱','Textvas는 크리에이터부터 일반 사용자까지 쓸 수 있는 직관적인 노트 앱입니다.'],
+    es:['Textvas — Coloca texto e imágenes con total libertad','Textvas es una app de notas intuitiva para todos, desde creadores hasta usuarios cotidianos.'],
+    'pt-br':['Textvas — Organize texto e imagens com total liberdade','O Textvas é um app de notas intuitivo para todos, de criadores a usuários do dia a dia.'],
+    de:['Textvas — Text und Bilder frei anordnen','Textvas ist eine intuitive Notiz-App für alle – von Kreativen bis zu Alltagsnutzern.'],
+    fr:['Textvas — Disposez texte et images en toute liberté','Textvas est une application de prise de notes intuitive pour tous, des créatifs aux utilisateurs du quotidien.'],
+    ru:['Textvas — Располагайте текст и изображения свободно','Textvas — интуитивно понятное приложение для заметок для всех: от авторов до обычных пользователей.'],
+    uk:['Textvas — Розташовуйте текст і зображення вільно','Textvas — інтуїтивно зрозумілий застосунок для нотаток для всіх: від творців до звичайних користувачів.']
+  };
+  var __m=META[lang]||META.ja;
+  document.title=__m[0];
+  var __md=document.querySelector('meta[name="description"]'); if(__md) __md.setAttribute('content',__m[1]);
+  var __ot=document.querySelector('meta[property="og:title"]'); if(__ot) __ot.setAttribute('content',__m[0]);
+  var __od=document.querySelector('meta[property="og:description"]'); if(__od) __od.setAttribute('content',__m[1]);
+  document.querySelectorAll('.i18n').forEach(function(el){
+    var text=el.getAttribute('data-'+lang);
+    if(text==null) return;
+    var dots=(text.match(/。/g)||[]).length;
+    if(text.indexOf('<br>')!==-1||text.indexOf('<span')!==-1){
+      el.innerHTML=text;
+    }else if(el.tagName==='P'&&dots>=3){
+      el.innerHTML=text.replace(/。(?!$)/g,'。<br>');
+    }else if(el.tagName==='P'&&lang==='en'&&(text.match(/\. /g)||[]).length>=2){
+      el.innerHTML=text.replace(/\. (?!$)/g,'.<br>');
+    }else{
+      el.textContent=text;
+    }
+  });
+  
+  if(lang==='ja'){
+    document.querySelectorAll('.showcase .feat-card h3, .showcase .feat-card p').forEach(function(el){
+      if(el.children.length) return; 
+      el.textContent=jpBunsetsu(el.textContent);
+    });
+  }
+  var imgKey=(lang==='ja')?'ja':'en';
+  document.querySelectorAll('[data-img-'+imgKey+']').forEach(function(img){
+    img.src=img.getAttribute('data-img-'+imgKey);
+  });
+}
+(function(){
+  var tog=document.getElementById('lang-toggle');
+  var trg=document.getElementById('lang-trigger');
+  var panel=document.getElementById('lang-panel');
+  if(!tog||!trg||!panel) return;
+  trg.addEventListener('click',function(e){
+    e.stopPropagation();
+    var isOpen=tog.classList.toggle('open');
+    trg.setAttribute('aria-expanded', isOpen?'true':'false');
+  });
+  panel.querySelectorAll('.lang-item').forEach(function(item){
+    item.addEventListener('click',function(e){
+      e.stopPropagation();
+      var lang=item.getAttribute('data-lang');
+      if(lang) setLang(lang);
+    });
+  });
+  document.addEventListener('click',function(e){
+    if(!tog.contains(e.target)){tog.classList.remove('open');trg.setAttribute('aria-expanded','false');}
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&tog.classList.contains('open')){tog.classList.remove('open');trg.setAttribute('aria-expanded','false');trg.focus();}
+  });
+  var langOrder=Array.from(panel.querySelectorAll('.lang-item')).map(function(item){return item.getAttribute('data-lang');});
+  tog.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var active=panel.querySelector('.lang-item.active');
+    var cur=active?active.getAttribute('data-lang'):langOrder[0];
+    var idx=langOrder.indexOf(cur);
+    idx=(idx+(e.deltaY>0?1:-1)+langOrder.length)%langOrder.length;
+    setLang(langOrder[idx]);
+  },{passive:false});
+})();
+(function(){
+  var bl=(navigator.language||'ja').toLowerCase();
+  var initial='en';
+  if(bl.startsWith('ja')) initial='ja';
+  else if(bl.startsWith('zh-tw')||bl.startsWith('zh-hk')) initial='zh-tw';
+  else if(bl.startsWith('zh')) initial='zh';
+  else if(bl.startsWith('ko')) initial='ko';
+  else if(bl.startsWith('es')) initial='es';
+  else if(bl.startsWith('pt')) initial='pt-br';
+  else if(bl.startsWith('de')) initial='de';
+  else if(bl.startsWith('fr')) initial='fr';
+  else if(bl.startsWith('ru')) initial='ru';
+  else if(bl.startsWith('uk')) initial='uk';
+  setLang(initial);
+})();
+
+
+(function(){
+  var thumbs=document.getElementById('hero-thumbs');
+  var stage=document.getElementById('hero-stage');
+  if(!thumbs||!stage) return;
+  var slides=stage.querySelectorAll('.hero-slide');
+  var btns=thumbs.querySelectorAll('.hero-thumb');
+  var prev=document.getElementById('hero-prev');
+  var next=document.getElementById('hero-next');
+  var cur=0;
+  function show(i,dir){
+    i=(i+slides.length)%slides.length;
+    if(i===cur) return;
+    if(!dir) dir=(i>cur)?1:-1;
+    var oldEl=slides[cur],newEl=slides[i];
+    
+    newEl.style.transition='none';
+    newEl.style.transform='translateX('+(dir*100)+'%)';
+    newEl.classList.add('active');
+    void newEl.offsetWidth; 
+    newEl.style.transition='';
+    newEl.style.transform='translateX(0)';
+    
+    oldEl.style.transform='translateX('+(-dir*100)+'%)';
+    oldEl.classList.remove('active');
+    cur=i;
+    btns.forEach(function(b,n){b.classList.toggle('active',n===cur);});
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.dataset.i,10));});
+  });
+  if(prev) prev.addEventListener('click',function(){show(cur-1,-1);});
+  if(next) next.addEventListener('click',function(){show(cur+1,1);});
+})();
+
+
+(function(){
+  var tog=document.getElementById('buy-toggle');
+  var trg=document.getElementById('buy-trigger');
+  if(!tog||!trg) return;
+  trg.addEventListener('click',function(e){
+    e.stopPropagation();
+    var open=tog.classList.toggle('open');
+    trg.setAttribute('aria-expanded',open?'true':'false');
+  });
+  document.addEventListener('click',function(e){
+    if(!tog.contains(e.target)){tog.classList.remove('open');trg.setAttribute('aria-expanded','false');}
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){tog.classList.remove('open');trg.setAttribute('aria-expanded','false');}
+  });
+})();
+
+
+(function(){
+  var nav=document.querySelector('.nav');
+  var burger=document.getElementById('nav-burger');
+  var links=document.getElementById('nav-links-menu');
+  if(!nav||!burger||!links) return;
+  function close(){nav.classList.remove('open');burger.setAttribute('aria-expanded','false');}
+  burger.addEventListener('click',function(e){
+    e.stopPropagation();
+    var open=nav.classList.toggle('open');
+    burger.setAttribute('aria-expanded',open?'true':'false');
+  });
+  
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click',function(){close();});
+  });
+  document.addEventListener('click',function(e){
+    if(nav.classList.contains('open')&&!nav.contains(e.target)) close();
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&nav.classList.contains('open')) close();
+  });
+  
+  window.addEventListener('resize',function(){
+    if(window.innerWidth>900&&nav.classList.contains('open')) close();
+  });
+})();
+
+
+(function(){
+  var lang=document.getElementById('lang-toggle');
+  var deskHome=document.querySelector('.nav-actions');
+  var mobHome=document.getElementById('nav-links-menu');
+  if(!lang||!deskHome||!mobHome) return;
+  var mq=window.matchMedia('(max-width:900px)');
+  function place(){
+    var target=mq.matches?mobHome:deskHome;
+    if(lang.parentNode!==target) target.appendChild(lang);
+  }
+  place();
+  if(mq.addEventListener) mq.addEventListener('change',place);
+  else if(mq.addListener) mq.addListener(place);
+})();
+
+
+(function(){
+  var ZWSP='​';
+  var punct=/([、。！？・：；」』）】〕》〉])/g;
+  var joshi=/(を|に|は|が|へ|と|で|も|や|の|から|まで|より|など|ため|ので|けど)(?=[ぁ-んァ-ヶ一-龠])/g;
+  function apply(root){
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+    var list=[],n;
+    while(n=walker.nextNode()){
+      if(n.parentElement&&n.parentElement.closest('.i18n')) continue;
+      if(!/[ぁ-んァ-ヶ一-龠]/.test(n.nodeValue)) continue;
+      list.push(n);
+    }
+    list.forEach(function(t){
+      t.nodeValue=t.nodeValue.replace(punct,'$1​').replace(joshi,'$1​');
+    });
+  }
+  document.querySelectorAll('.feature,.banner .caption,.showcase,.hero-card .lead').forEach(apply);
+})();
+</script>
+</body>
+</html>
