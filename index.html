@@ -419,7 +419,7 @@ html[lang="zh"] .feat-card h3,html[lang="zh"] .feat-card p,html[lang="zh-tw"] .f
 </section>
 
 <div class="banner fade-in">
-  <video src="images/WEBM/6_touch.webm" autoplay loop muted playsinline></video>
+  <video src="images/WEBM/6_touch.webm" loop muted playsinline preload="none"></video>
   <div class="caption">
     <h2 class="i18n" data-ja="タッチパネル対応" data-en="Touchscreen Support" data-zh="支持触控屏" data-zh-tw="支援觸控螢幕" data-ko="터치스크린 지원" data-es="Compatible con pantalla táctil" data-pt-br="Compatível com tela sensível ao toque" data-de="Touchscreen-Unterstützung" data-fr="Prise en charge tactile" data-ru="Поддержка сенсорного экрана" data-uk="Підтримка сенсорного екрана">タッチパネル対応</h2>
     <p class="i18n" data-ja="スワイプやピンチイン・アウトに対応しています。<br>指でのタッチ操作が可能です。" data-en="Supports swipe and pinch-to-zoom.<br>Operate it with touch." data-zh="支持滑动和双指缩放。<br>可用手指进行触控操作。" data-zh-tw="支援滑動與雙指縮放。<br>可用手指進行觸控操作。" data-ko="스와이프와 핀치 줌을 지원합니다.<br>손가락 터치로 조작할 수 있습니다." data-es="Admite deslizar y pellizcar para hacer zoom.<br>Puedes manejarlo con el dedo." data-pt-br="Suporta deslizar e pinçar para dar zoom.<br>Dá para operar com o toque." data-de="Unterstützt Wischen und Pinch-to-Zoom.<br>Bedienung per Fingerberührung möglich." data-fr="Prend en charge le balayage et le pincement pour zoomer.<br>Utilisable au doigt." data-ru="Поддерживает свайп и щипковое масштабирование.<br>Управление касанием пальцем." data-uk="Підтримує свайп і масштабування щипком.<br>Керування дотиком пальця.">スワイプやピンチイン・アウトに対応しています。<br>指でのタッチ操作が可能です。</p>
@@ -459,7 +459,7 @@ html[lang="zh"] .feat-card h3,html[lang="zh"] .feat-card p,html[lang="zh-tw"] .f
 </section>
 
 <div class="banner fade-in">
-  <video src="images/WEBM/9_multilang.webm" autoplay loop muted playsinline></video>
+  <video src="images/WEBM/9_multilang.webm" loop muted playsinline preload="none"></video>
   <div class="caption">
     <h2 class="i18n" data-ja="多言語対応" data-en="Multilingual" data-zh="多语言支持" data-zh-tw="多語言支援" data-ko="다국어 지원" data-es="Multilingüe" data-pt-br="Multilíngue" data-de="Mehrsprachig" data-fr="Multilingue" data-ru="Многоязычность" data-uk="Багатомовність">多言語対応</h2>
     <p class="i18n" data-ja="29言語に対応（UIのみ）。アプリ内の設定から切り替えできます。" data-en="Supports 29 languages (UI only). Switch from the in-app settings." data-zh="支持 29 种语言（仅界面）。可在应用内设置中切换。" data-zh-tw="支援 29 種語言（僅介面）。可在應用程式內設定中切換。" data-ko="29개 언어를 지원합니다(UI만). 앱 내 설정에서 전환할 수 있습니다." data-es="Admite 29 idiomas (solo la interfaz). Cámbialo desde los ajustes de la app." data-pt-br="Suporta 29 idiomas (apenas a interface). Troque nas configurações do app." data-de="Unterstützt 29 Sprachen (nur UI). Umschaltbar in den App-Einstellungen." data-fr="Prend en charge 29 langues (interface uniquement). Changez depuis les réglages de l’app." data-ru="Поддерживает 29 языков (только интерфейс). Переключение в настройках приложения." data-uk="Підтримує 29 мов (лише інтерфейс). Перемикання в налаштуваннях застосунку.">29言語に対応（UIのみ）。アプリ内の設定から切り替えできます。</p>
@@ -741,21 +741,38 @@ document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.fade-in').forEach(function(el){obs.observe(el);});
 
 
+  var MAX_ACTIVE=window.matchMedia('(max-width:768px)').matches?2:6;
+  var vVisible=new Set();
+  var vActive=new Set();
+  function vActivate(v){
+    if(vActive.has(v)) return;
+    if(!v.getAttribute('src') && v.dataset.vsrc){ v.setAttribute('src',v.dataset.vsrc); v.load(); }
+    if(v.preload!=='auto'){v.preload='auto';}
+    v.play().catch(function(){});
+    vActive.add(v);
+  }
+  function vDeactivate(v){
+    if(!vActive.has(v)) return;
+    v.pause();
+    var s=v.getAttribute('src');
+    if(s){ v.dataset.vsrc=s; v.removeAttribute('src'); v.load(); }
+    vActive.delete(v);
+  }
+  var vAll=document.querySelectorAll('video');
+  function vReconcile(){
+    vActive.forEach(function(v){ if(!vVisible.has(v)) vDeactivate(v); });
+    for(var i=0;i<vAll.length && vActive.size<MAX_ACTIVE;i++){
+      var v=vAll[i];
+      if(vVisible.has(v) && !vActive.has(v)) vActivate(v);
+    }
+  }
   var vobs=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
-      var v=e.target;
-      if(e.isIntersecting){
-        if(!v.getAttribute('src') && v.dataset.vsrc){ v.setAttribute('src',v.dataset.vsrc); v.load(); }
-        if(v.preload!=='auto'){v.preload='auto';}
-        v.play().catch(function(){});
-      } else {
-        v.pause();
-        var s=v.getAttribute('src');
-        if(s){ v.dataset.vsrc=s; v.removeAttribute('src'); v.load(); }
-      }
+      if(e.isIntersecting) vVisible.add(e.target); else vVisible.delete(e.target);
     });
-  },{threshold:0.01,rootMargin:'200px 0px 200px 0px'});
-  document.querySelectorAll('video').forEach(function(v){vobs.observe(v);});
+    vReconcile();
+  },{threshold:0.01,rootMargin:'0px 0px 0px 0px'});
+  vAll.forEach(function(v){vobs.observe(v);});
 });
 
 
