@@ -176,6 +176,9 @@ p,dt,dd,.lead{line-break:strict;text-wrap:pretty}
 .feature .media{border-radius:14px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
 .feature .media img,.feature .media video{width:100%;display:block;background:var(--bg2)}
 .feature.alt .media{order:-1}
+/* wide-media: 動画列を 1fr->3fr にして表示幅を1.2倍にする。外すとクラスを消すだけで元に戻る */
+.feature.alt.wide-media{grid-template-columns:3fr 2fr}
+.feature.wide-media:not(.alt){grid-template-columns:2fr 3fr}
 
 .feature>*{min-width:0}
 .feature .media video{width:100%;height:auto}
@@ -185,6 +188,7 @@ p,dt,dd,.lead{line-break:strict;text-wrap:pretty}
   .feature{grid-template-columns:1fr;gap:28px;padding:48px 24px}
   .feature.tinted{padding:36px 24px}
   .feature.alt .media{order:0}
+  .feature.alt.wide-media,.feature.wide-media:not(.alt){grid-template-columns:1fr}
   .feature h2{font-size:27px}
 }
 
@@ -499,10 +503,10 @@ html[lang="zh"] .feat-card h3,html[lang="zh"] .feat-card p,html[lang="zh-tw"] .f
 </section>
 
 
-<section class="feature tinted alt fade-in">
+<section class="feature tinted alt wide-media fade-in">
   <div class="text">
     <h2 class="i18n" data-ja="テーブル機能" data-en="Tables" data-zh="表格" data-zh-tw="表格" data-ko="표" data-es="Tablas" data-pt-br="Tabelas" data-de="Tabellen" data-fr="Tableaux" data-ru="Таблицы" data-uk="Таблиці">テーブル機能</h2>
-    <p class="i18n" data-ja="情報を並べて比べたいときは、ボードにテーブルをそのまま置けます。<br>見出しの位置が違う4種類から選べて、行と列はあとから自由に増減。<br>列幅も行の高さも、ドラッグするだけで思いどおりに決まります。" data-en="When you want to line information up and compare it, drop a table straight onto the board.<br>Pick from four types with different header positions, and add or remove rows and columns whenever you like.<br>Column widths and row heights fall into place with a single drag." data-zh="想把信息排列起来比较时，可以直接在面板上放置表格。<br>可从表头位置不同的 4 种类型中选择，行和列之后也能自由增减。<br>列宽与行高，只要拖动就能调成心中的样子。" data-zh-tw="想把資訊排列起來比較時，可以直接在面板上放置表格。<br>可從表頭位置不同的 4 種類型中選擇，列與欄之後也能自由增減。<br>欄寬與列高，只要拖曳就能調成心中的樣子。" data-ko="정보를 나란히 놓고 비교하고 싶을 때, 보드에 표를 그대로 놓을 수 있습니다.<br>머리글 위치가 다른 네 가지 종류에서 고르고, 행과 열은 나중에 자유롭게 늘리고 줄일 수 있습니다.<br>열 너비도 행 높이도 드래그 한 번이면 원하는 대로 맞춰집니다." data-es="Cuando quieras alinear información y compararla, coloca una tabla directamente en el tablero.<br>Elige entre cuatro tipos con los encabezados en distintas posiciones y añade o quita filas y columnas cuando quieras.<br>El ancho de columna y el alto de fila quedan a tu gusto con solo arrastrar." data-pt-br="Quando quiser alinhar informações e comparar, coloque uma tabela direto no quadro.<br>Escolha entre quatro tipos com os cabeçalhos em posições diferentes e acrescente ou remova linhas e colunas quando quiser.<br>A largura das colunas e a altura das linhas ficam do seu jeito com um simples arrastar." data-de="Wenn Sie Informationen nebeneinanderstellen und vergleichen wollen, setzen Sie einfach eine Tabelle aufs Board.<br>Wählen Sie aus vier Varianten mit unterschiedlicher Position der Überschriften, und ergänzen oder entfernen Sie Zeilen und Spalten jederzeit.<br>Spaltenbreite und Zeilenhöhe sitzen mit einem einzigen Ziehen genau richtig." data-fr="Pour aligner des informations et les comparer, posez directement un tableau sur le plan de travail.<br>Choisissez parmi quatre variantes aux en-têtes différents, et ajoutez ou retirez lignes et colonnes à volonté.<br>Largeur des colonnes et hauteur des lignes se règlent d'un simple glissement." data-ru="Когда нужно выстроить данные в ряд и сравнить их, просто поместите таблицу на доску.<br>Выбирайте один из четырёх вариантов с разным расположением заголовков и добавляйте или убирайте строки и столбцы в любой момент.<br>Ширина столбцов и высота строк встают на место одним перетаскиванием." data-uk="Коли потрібно вишикувати дані поруч і порівняти їх, просто покладіть таблицю на дошку.<br>Обирайте один із чотирьох варіантів із різним розташуванням заголовків і додавайте чи прибирайте рядки та стовпці будь-коли.<br>Ширина стовпців і висота рядків стають на місце одним перетягуванням.">情報を並べて比べたいときは、ボードにテーブルをそのまま置けます。<br>見出しの位置が違う4種類から選べて、行と列はあとから自由に増減。<br>列幅も行の高さも、ドラッグするだけで思いどおりに決まります。</p>
+    <p class="i18n" data-ja="数値や設定をテーブルにまとめて、ボード上に置けます。<br>見出しの位置が異なる4種類から選べます。<br>行と列の追加・削除、列幅と行の高さの調整ができます。" data-en="Gather numbers and settings into a table and place it on the board.<br>Choose from four types with the header in different positions.<br>Rows and columns can be added or removed, and column widths and row heights adjusted." data-zh="将数值和设定整理到表格中，放置在面板上。<br>可从表头位置不同的 4 种类型中选择。<br>可以添加・删除行和列，调整列宽与行高。" data-zh-tw="將數值與設定整理到表格中，放置在面板上。<br>可從表頭位置不同的 4 種類型中選擇。<br>可以新增・刪除列與欄，調整欄寬與列高。" data-ko="수치나 설정을 표로 정리해 보드 위에 놓을 수 있습니다.<br>머리글 위치가 다른 네 가지 종류에서 고를 수 있습니다.<br>행과 열의 추가・삭제, 열 너비와 행 높이 조정이 가능합니다." data-es="Reúne cifras y ajustes en una tabla y colócala en el tablero.<br>Elige entre cuatro tipos con el encabezado en distintas posiciones.<br>Puedes añadir o quitar filas y columnas y ajustar el ancho y el alto." data-pt-br="Reúna números e configurações em uma tabela e posicione no quadro.<br>Escolha entre quatro tipos com o cabeçalho em posições diferentes.<br>Dá para adicionar ou remover linhas e colunas e ajustar largura e altura." data-de="Fassen Sie Werte und Einstellungen in einer Tabelle zusammen und setzen Sie sie aufs Board.<br>Wählen Sie aus vier Varianten mit unterschiedlicher Position der Überschriften.<br>Zeilen und Spalten lassen sich ergänzen oder entfernen, Breite und Höhe anpassen." data-fr="Regroupez chiffres et réglages dans un tableau et posez-le sur le plan de travail.<br>Choisissez parmi quatre variantes selon la position des en-têtes.<br>Ajoutez ou supprimez lignes et colonnes, ajustez largeurs et hauteurs." data-ru="Соберите числа и настройки в таблицу и разместите её на доске.<br>Выбирайте один из четырёх вариантов с разным расположением заголовков.<br>Строки и столбцы можно добавлять и удалять, ширину и высоту настраивать." data-uk="Зберіть числа й налаштування в таблицю та розмістіть її на дошці.<br>Обирайте один із чотирьох варіантів із різним розташуванням заголовків.<br>Рядки та стовпці можна додавати й видаляти, ширину та висоту налаштовувати.">数値や設定をテーブルにまとめて、ボード上に置けます。<br>見出しの位置が異なる4種類から選べます。<br>行と列の追加・削除、列幅と行の高さの調整ができます。</p>
   </div>
   <div class="media"><video src="images/WEBM/11_table.webm" loop muted playsinline preload="none"></video></div>
 </section>
@@ -774,7 +778,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
   var MAX_ACTIVE=window.matchMedia('(max-width:768px)').matches?2:6;
-  var vVisible=new Set();
+  var SWAP_MARGIN=0.15;
+  var vRatio=new Map();
   var vActive=new Set();
   function vActivate(v){
     if(vActive.has(v)) return;
@@ -791,19 +796,40 @@ document.addEventListener('DOMContentLoaded',function(){
     vActive.delete(v);
   }
   var vAll=document.querySelectorAll('video');
+  function vByRatio(a,b){
+    var d=vRatio.get(b)-vRatio.get(a);
+    if(d) return d;
+    return (a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING)?-1:1;
+  }
   function vReconcile(){
-    vActive.forEach(function(v){ if(!vVisible.has(v)) vDeactivate(v); });
-    for(var i=0;i<vAll.length && vActive.size<MAX_ACTIVE;i++){
-      var v=vAll[i];
-      if(vVisible.has(v) && !vActive.has(v)) vActivate(v);
+    vActive.forEach(function(v){ if(!vRatio.has(v)) vDeactivate(v); });
+    if(window.TXV_VIDEO_PRIORITY===false){
+      for(var i=0;i<vAll.length && vActive.size<MAX_ACTIVE;i++){
+        var vd=vAll[i];
+        if(vRatio.has(vd) && !vActive.has(vd)) vActivate(vd);
+      }
+      return;
+    }
+    var waiting=[];
+    vRatio.forEach(function(r,v){ if(!vActive.has(v)) waiting.push(v); });
+    waiting.sort(vByRatio);
+    for(var j=0;j<waiting.length && vActive.size<MAX_ACTIVE;j++) vActivate(waiting[j]);
+    var head=0;
+    while(vActive.size>=MAX_ACTIVE){
+      while(head<waiting.length && vActive.has(waiting[head])) head++;
+      if(head>=waiting.length) break;
+      var cand=waiting[head], low=null;
+      vActive.forEach(function(v){ if(low===null || vByRatio(v,low)>0) low=v; });
+      if(low===null || vRatio.get(cand)<=vRatio.get(low)+SWAP_MARGIN) break;
+      vDeactivate(low); vActivate(cand); head++;
     }
   }
   var vobs=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
-      if(e.isIntersecting) vVisible.add(e.target); else vVisible.delete(e.target);
+      if(e.isIntersecting) vRatio.set(e.target,e.intersectionRatio); else vRatio.delete(e.target);
     });
     vReconcile();
-  },{threshold:0.01,rootMargin:'0px 0px 0px 0px'});
+  },{threshold:[0,0.01,0.25,0.5,0.75,1],rootMargin:'0px 0px 0px 0px'});
   vAll.forEach(function(v){vobs.observe(v);});
 });
 
